@@ -1,0 +1,37 @@
+Main Rocket Computer:
+- Main Handler that runs all the files.
+- (This is the file that is ran)
+
+Transceiver Manager:
+- Manages transceiver (trans/receiver) communication.
+- Other managers are able to subscribe to when the receiver get data
+- Public function for sending data to GCS.
+
+- This function also inherently sends pings every # milliseconds.
+- (FOR LATENCY)
+
+Command ID Mapping:
+- (Static class)
+- Maps IDs to Commands.
+- All Commands Keys are encrypted with the following method:
+	- Phase Shift Letters from the modulus of a specific module
+- Keys are in a local file (On both sides).
+
+Rocket Controller:
+- Only a controller.
+- Controls/Manages GPIO pins.
+- Automatically deploys parachute when conditions met.
+- Shutdown pins or sensors remotely.
+- Gets sensor data and for transmission.
+
+COMMANDS:
+- "Manual Parachute Deployment": Deploy parachute manually.
+
+- "Disable/Enable Automatic Deployment": Disable/Enable automatic deployment.
+
+- "Shutdown": Shutdown the entire rocket computer.
+
+- "Disable/Enable Sensor Data Transmission": Disable/Enable sensor transmission.
+- "Disable/Enable Receiving": "Disable/Enable transceiver receiving."
+
+- "Disable/Enable Local Onboard Raspi-Camera": Disable/Enable Raspi-Camera.
