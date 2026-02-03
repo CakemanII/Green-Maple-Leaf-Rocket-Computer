@@ -10,7 +10,7 @@ Transceiver Manager:
 - This function also inherently sends pings every # milliseconds.
 - (FOR LATENCY)
 
-Command ID Mapping:
+Command ID Mapping: DONE
 - (Static class)
 - Maps IDs to Commands.
 - All Commands Keys are encrypted with the following method:
