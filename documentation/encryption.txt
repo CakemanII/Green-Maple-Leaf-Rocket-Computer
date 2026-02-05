@@ -1,0 +1,11 @@
+Transmitting with 3-step encryption
+1. Encrypt key with command_map
+2. Encrypt data using AES
+3. Encrypt AES key using RSA
+4. Send out data
+
+Receiving with 3-step decryption
+1. Receive data
+2. decrypt AES key using RSA
+3. decrypt data using AES
+4. decrypt key with command_map
