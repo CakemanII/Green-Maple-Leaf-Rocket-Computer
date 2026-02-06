@@ -1,0 +1,8 @@
+Conditions for automatic parachute deployment
+
+1. Acceleration < 0
+2. Abs(Velocity) < 0.1
+3. Rocket is upright
+4. Parachute not yet deployed
+5. At least 3 seconds has passed since ignition.
+6. Displacement altitude atleast +25m
