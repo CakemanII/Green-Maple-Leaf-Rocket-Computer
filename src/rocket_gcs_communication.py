@@ -33,8 +33,12 @@ class RocketCommunication:
             self._aes_key = aes_key
             print(f"✅ Using provided AES-{len(aes_key)*8} key")
 
-        # Start main communication thread
-        threading.Thread(target=self._main, daemon=True).start()
+    def start_communication(self):
+        """
+        Start the communication thread.
+        """
+        comm_thread = threading.Thread(target=self._main, daemon=True)
+        comm_thread.start()
         
     def _verify_rfm9x_device(self):
         """
