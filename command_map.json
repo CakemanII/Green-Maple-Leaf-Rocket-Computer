@@ -1,8 +1,0 @@
-{
-    "manual_parachute_deployment": "522d16e8",
-    "toggle_automatic_deployment": "73572faa",
-    "shutdown": "ae63c573",
-    "toggle_sensor_data_transmission": "4e7e5abb",
-    "toggle_receiving": "0abc73bc",
-    "toggle_onboard_raspi-cam": "78d89656"
-}

@@ -6,7 +6,7 @@ def main():
     rocket_controller = RocketController()
 
     # Initialize Rocket GCS Communication
-    rocket_communication = RocketCommunication(rocket_controller)    
+    rocket_communication = RocketCommunication(rocket_controller)
 
 if __name__ == "__main__":
     main()
