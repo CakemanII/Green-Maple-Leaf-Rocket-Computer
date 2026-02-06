@@ -14,6 +14,8 @@ from rocket_controller import RocketController
 from commands_list import RocketCommand
 
 class RocketCommunication:
+    SENSOR_VERIFY_ATTEMPT_DELAY = 0.2
+
     def __init__(self, rocket_controller: RocketController, radio_freq_mhz: float = 915.0, aes_key: bytes = None):
         # Initialize RocketCommunication with RocketController and radio frequency
         self._rocket_controller = rocket_controller
@@ -33,6 +35,7 @@ class RocketCommunication:
             self._aes_key = aes_key
             print(f"✅ Using provided AES-{len(aes_key)*8} key")
 
+    # region Communication Management
     def start_communication(self):
         """
         Start the communication thread.
@@ -61,7 +64,8 @@ class RocketCommunication:
                 print("❌ RFM9x not found, retrying...")
 
             # Delay
-            time.sleep(0.2)
+            time.sleep(RocketCommunication.SENSOR_VERIFY_ATTEMPT_DELAY)
+    # endregion
 
     def _main(self):
         """
