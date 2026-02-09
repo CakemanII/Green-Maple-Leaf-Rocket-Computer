@@ -1,0 +1,5 @@
+Conditions for automatic motor disengagement.
+
+0. Not already deployed
+1. 3 Seconds have passed
+2. AccelerationY < 0.
