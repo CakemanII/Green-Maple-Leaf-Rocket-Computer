@@ -21,7 +21,7 @@ class RocketCommunication:
         self._rocket_controller = rocket_controller
         self._radio_freq_mhz = radio_freq_mhz
         self._rfm9x = None
-        self._listeners: dict[str, callable] = {}
+        self._listeners: dict[str, list[callable]] = {}
 
         # AES encryption key (32 bytes for AES-256)
         if aes_key is None:
@@ -198,4 +198,6 @@ class RocketCommunication:
         """
         Add a listener for incoming data with a specific label.
         """
-        self._listeners[label] += callback
+        if label not in self._listeners:
+            self._listeners[label] = []
+        self._listeners[label].append(callback)
