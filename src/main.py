@@ -73,8 +73,11 @@ class RocketComputer:
         Main control loop for the rocket computer.
         """
         while True:
+            print("🚀 Rocket Computer Main Loop Iteration")
             # Check if we should deploy the parachute
             self._detect_deploy_parachute()
+            # Check if we should disengage the motor module
+            self._detect_disengage_motor_module()
             time.sleep(0.05)
 
 
