@@ -16,7 +16,7 @@ class RocketComputer:
         
         # Initialize sensor data management
         self._rocket_sensor_data = RocketSensorData(self._rocket_controller)
-        self._rocket_sensor_data.start_updating()
+        self._rocket_sensor_data.start()
 
         # Add listeners for commands
         self._add_listeners()
@@ -83,7 +83,7 @@ class RocketComputer:
         Determine when to deploy the parachute.
         """
         # Ensure parachute trigger has not been deployed yet.
-        if not self._rocket_controller._is_co2_breach_triggered():
+        if not self._rocket_controller.is_co2_breach_triggered():
             return
 
         # Acceleration
@@ -107,7 +107,23 @@ class RocketComputer:
         # All conditions met, breach co2 & deploy parachute
         self._rocket_controller.breach_co2_canister()
         
-
+    def _detect_disengage_motor_module(self):
+        """
+        Determine when to disengage the motors.
+        """
+        # Ensure motor module has not yet been disengaged.
+        if (self._rocket_controller.is_disengage_motor_module_triggered()):
+            return
+        
+        # At least 3 seconds after launch
+        # ...
+        
+        # Make sure acceleration is less than 0.
+        if (self._rocket_sensor_data.get_imu_data()['acceleration'] < 0):
+            return
+        
+        # All conditions met, disengage motor module
+        self._rocket_controller.disengage_rocket_motor_module()
 
 if __name__ == "__main__":
     RocketComputer()

@@ -37,11 +37,11 @@ class RocketSensorData:
         Start a continuous loop to update the sensor data at a specified interval.
         """
         while True:
-            self.update_sensor_data()
+            self._update_sensor_data()
             time.sleep(update_interval)
 
 
-    def start_updating(self):
+    def start(self):
         """
         Start the continuous sensor data update in a separate thread.
         """

@@ -76,8 +76,6 @@ class RocketCommunication:
         while True:
             # Delay
             time.sleep(0.1)
-
-            # Check if the RFM9x is still valid
             
             # Check for incoming packet
             try:

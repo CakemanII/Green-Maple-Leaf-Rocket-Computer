@@ -22,7 +22,8 @@ class RocketController:
         self._accel_offset = None
         self._gyro_offset = None
 
-        self._co2_breach_triggered = None
+        self._co2_breach_triggered = False
+        self._motor_disengage_triggered = False
 
         # I2C SETUP
         # Initialize the I2C bus using Raspberry Pi hardware pins (SCL/SDA)
@@ -32,14 +33,20 @@ class RocketController:
         time.sleep(1.5)
 
         # Sensor Setup
-        self._setup_and_verify_dps()
-        self._setup_gps()
-        self._setup_and_verify_imu()
+        self._verify_dps_device()
+        self._setup_gps_device()
+        self._verify_imu_device()
 
-    def _is_co2_breach_triggered(self) -> bool: return self._co2_breach_triggered
+        # Calibrate the IMU (this can take a few seconds)
+        print("Calibrating IMU... Please keep the device still.")
+        self._calibrate_imu()
+        print("IMU calibration complete.")
+
+    def is_co2_breach_triggered(self) -> bool: return self._co2_breach_triggered
+    def is_disengage_motor_module_triggered(self) -> bool: return self._motor_disengage_triggered
 
     # region Sensor Setup
-    def _setup_and_verify_dps(self):
+    def _verify_dps_device(self):
         while True:
             try:
                 # Initialize DPS310 pressure/temperature sensor
@@ -53,9 +60,8 @@ class RocketController:
             except:
                 print(f"DPS310 sensor initialization failed. Retrying in {RocketController.SENSOR_VERIFY_ATTEMPT_DELAY} seconds...")
                 time.sleep(RocketController.SENSOR_VERIFY_ATTEMPT_DELAY)
-                
 
-    def _setup_gps(self):
+    def _setup_gps_device(self):
         # Serial port used by the GPS module
         PORT = "/dev/ttyAMA0"
         BAUD = 9600
@@ -63,7 +69,7 @@ class RocketController:
         # Open serial connection to GPS
         self._ser = serial.Serial(PORT, BAUD, timeout=1)
 
-    def _setup_and_verify_imu(self):
+    def _verify_imu_device(self):
         while True:
             try:
                 # Create BNO08X IMU object
@@ -83,11 +89,6 @@ class RocketController:
                 print(f"BNO08X IMU initialization failed. Retrying in {RocketController.SENSOR_VERIFY_ATTEMPT_DELAY} seconds...")
                 time.sleep(RocketController.SENSOR_VERIFY_ATTEMPT_DELAY)
                 continue
-
-        # Calibrate the IMU (this can take a few seconds)
-        print("Calibrating IMU... Please keep the device still.")
-        self._calibrate_imu()
-        print("IMU calibration complete.")
     # endregion
 
     def _calibrate_imu(self):
@@ -209,3 +210,13 @@ class RocketController:
 
         # Set the flag
         self._co2_breach_triggered = True
+
+    def disengage_rocket_motor_module(self):
+        """
+        Rotate the servo to unlock the rocket motor module and allow it to fall away from the rocket.
+        """
+        # Disengage the rocket motor module
+        # ...
+
+        # Set the flag
+        self._motor_disengage_triggered = True
