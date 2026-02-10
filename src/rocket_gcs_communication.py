@@ -60,6 +60,7 @@ class RocketCommunication:
                 rfm9x = adafruit_rfm9x.RFM9x(spi, CS, RESET, self._radio_freq_mhz)
                 self._rfm9x = rfm9x
                 print("✅ RFM9x found and initialized.")
+                break
             except:
                 print("❌ RFM9x not found, retrying...")
 
