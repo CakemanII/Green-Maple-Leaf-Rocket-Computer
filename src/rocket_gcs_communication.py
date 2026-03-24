@@ -1,3 +1,5 @@
+from typing import TypedDict
+
 import adafruit_rfm9x
 import board
 import busio
@@ -12,6 +14,11 @@ from cryptography.hazmat.primitives import padding
 
 from rocket_controller import RocketController
 from commands_list import RocketCommand
+
+class RadioDataObject(TypedDict):
+    l: str # input telemetry_id / label
+    s: float # timestamp this was sent
+    d: object # data (can be any JSON-serializable object)
 
 class RocketCommunication:
     SENSOR_VERIFY_ATTEMPT_DELAY = 0.2
@@ -147,7 +154,7 @@ class RocketCommunication:
         return data
     # endregion
 
-    def send_data(self, data: object):
+    def send_data(self, label: str, data: object):
         """
         Send data via RFM9x.
         """
@@ -155,9 +162,9 @@ class RocketCommunication:
         time_seconds = time.time()
 
         # Create object
-        data_packet = {
-            "l": "data",
-            "t": time_seconds,
+        data_packet: RadioDataObject = {
+            "l": label,
+            "s": time_seconds,
             "d": data
         }
 

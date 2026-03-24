@@ -19,7 +19,7 @@ class RocketComputer:
         self._rocket_sensor_data.start()
 
         # Add listeners for commands
-        self._add_listeners()
+        self._add_command_listeners()
         
         # Start communication
         self._rocket_communication.start_communication()
@@ -28,7 +28,7 @@ class RocketComputer:
         self._main()
 
 
-    def _add_listeners(self):
+    def _add_command_listeners(self):
         """
         Add listeners for commands.
         """
@@ -78,6 +78,19 @@ class RocketComputer:
             self._detect_deploy_parachute()
             time.sleep(0.05)
 
+    def _send_continuous_telemetry_data(self):
+        while True:
+            # Get sensor data
+            imu_data = self._rocket_sensor_data.get_imu_data()
+            gps_data = self._rocket_sensor_data.get_gps_data()
+
+            # Send data to ground station
+            self._rocket_communication.send_data({
+                "imu": imu_data,
+                "gps": gps_data,
+            })
+
+            time.sleep(0.1)
 
     def _detect_deploy_parachute(self):
         """
