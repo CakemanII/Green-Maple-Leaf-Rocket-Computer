@@ -76,8 +76,6 @@ class RocketComputer:
             print("🚀 Rocket Computer Main Loop Iteration")
             # Check if we should deploy the parachute
             self._detect_deploy_parachute()
-            # Check if we should disengage the motor module
-            self._detect_disengage_motor_module()
             time.sleep(0.05)
 
 
@@ -109,24 +107,6 @@ class RocketComputer:
 
         # All conditions met, breach co2 & deploy parachute
         self._rocket_controller.breach_co2_canister()
-        
-    def _detect_disengage_motor_module(self):
-        """
-        Determine when to disengage the motors.
-        """
-        # Ensure motor module has not yet been disengaged.
-        if (self._rocket_controller.is_disengage_motor_module_triggered()):
-            return
-        
-        # At least 3 seconds after launch
-        # ...
-        
-        # Make sure acceleration is less than 0.
-        if (self._rocket_sensor_data.get_imu_data()['acceleration'] < 0):
-            return
-        
-        # All conditions met, disengage motor module
-        self._rocket_controller.disengage_rocket_motor_module()
 
 if __name__ == "__main__":
     RocketComputer()

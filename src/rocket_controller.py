@@ -23,7 +23,6 @@ class RocketController:
         self._gyro_offset = None
 
         self._co2_breach_triggered = False
-        self._motor_disengage_triggered = False
 
         # I2C SETUP
         # Initialize the I2C bus using Raspberry Pi hardware pins (SCL/SDA)
@@ -43,7 +42,6 @@ class RocketController:
         print("IMU calibration complete.")
 
     def is_co2_breach_triggered(self) -> bool: return self._co2_breach_triggered
-    def is_disengage_motor_module_triggered(self) -> bool: return self._motor_disengage_triggered
 
     # region Sensor Setup
     def _verify_dps_device(self):
@@ -210,13 +208,3 @@ class RocketController:
 
         # Set the flag
         self._co2_breach_triggered = True
-
-    def disengage_rocket_motor_module(self):
-        """
-        Rotate the servo to unlock the rocket motor module and allow it to fall away from the rocket.
-        """
-        # Disengage the rocket motor module
-        # ...
-
-        # Set the flag
-        self._motor_disengage_triggered = True
