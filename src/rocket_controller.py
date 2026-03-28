@@ -31,18 +31,22 @@ class RocketController:
         self._piezo = PiezoController()
         self._lcd = LCDController()
 
-        # Alert to not move the rocket computer during sensor initialization and calibration
+        # Blink the LCD backlight a few times to indicate startup
         for _ in range(8):
             self._lcd.screen_off()
-            self._piezo.set_buzzer(1000, 50)  # Beep at 1 kHz with 50% volume
             time.sleep(0.15)
             self._lcd.screen_on()
-            self._piezo.set_buzzer(1000, 50)  # Beep at 1 kHz with 50% volume
             time.sleep(0.15)
+
+        # Play the piezo buzzer to indicate startup
+        self._lcd.print_line("Playing Piezo", 0)
+        self._lcd.print_line("You should hear it!", 1)
+        
+
+        # Setup the IMU
         self._lcd.print_line("IMU Calibrating", 0)
         self._lcd.print_line("Keep Still!!!", 1)
         
-        # Setup the IMU
         time.sleep(0.25)
         self._bno = IMUSensorController(self._i2c)
         
@@ -69,6 +73,76 @@ class RocketController:
 
 
     def is_co2_breach_triggered(self) -> bool: return self._co2_breach_triggered
+
+    def play_startup_fanfare(self):
+        """Play a cool startup jingle with the piezo buzzer."""
+        # Define the melody: (frequency in Hz, duration in seconds)
+        # This is a catchy sci-fi startup tune
+        melody = [
+            (523, 0.15),   # C5 - High note
+            (587, 0.15),   # D5
+            (659, 0.15),   # E5
+            (784, 0.3),    # G5 - Hold
+            (659, 0.15),   # E5
+            (523, 0.15),   # C5
+            (587, 0.45),   # D5 - Hold longer
+            (0, 0.1),      # Silence
+            (784, 0.2),    # G5
+            (880, 0.2),    # A5
+            (987, 0.4),    # B5 - High finish
+            (880, 0.2),    # A5
+            (784, 0.6),    # G5 - Fade to end
+        ]
+        
+        for frequency, duration in melody:
+            if frequency == 0:
+                self._piezo.stop_buzzer()
+            else:
+                self._piezo.set_buzzer(frequency, 80)  # 80% volume
+            time.sleep(duration)
+        
+        self._piezo.stop_buzzer()
+
+    def play_alert_tone(self):
+        """Play an urgent alert/warning tone."""
+        alert_pattern = [
+            (880, 0.1),    # A5 - High alert note
+            (0, 0.05),     # Silence
+            (880, 0.1),    # A5
+            (0, 0.05),     # Silence
+            (1047, 0.15),  # C6 - Even higher
+            (0, 0.2),      # Longer silence
+        ]
+        
+        for frequency, duration in alert_pattern:
+            if frequency == 0:
+                self._piezo.stop_buzzer()
+            else:
+                self._piezo.set_buzzer(frequency, 100)  # Full volume
+            time.sleep(duration)
+        
+        self._piezo.stop_buzzer()
+
+    def play_success_chime(self):
+        """Play a pleasant success/confirmation chime."""
+        chime = [
+            (523, 0.2),    # C5
+            (0, 0.05),
+            (659, 0.2),    # E5
+            (0, 0.05),
+            (784, 0.4),    # G5 - Hold for success
+            (0, 0.1),
+            (784, 0.2),    # G5 again
+        ]
+        
+        for frequency, duration in chime:
+            if frequency == 0:
+                self._piezo.stop_buzzer()
+            else:
+                self._piezo.set_buzzer(frequency, 75)
+            time.sleep(duration)
+        
+        self._piezo.stop_buzzer()
 
     # region Fan Setup
     def _verify_fan_device(self):
