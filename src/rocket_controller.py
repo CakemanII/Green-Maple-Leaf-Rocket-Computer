@@ -41,7 +41,7 @@ class RocketController:
         # Play the piezo buzzer to indicate startup
         self._lcd.print_line("Playing Piezo", 0)
         self._lcd.print_line("You should hear it!", 1)
-        
+        self.play_startup_fanfare()
 
         # Setup the IMU
         self._lcd.print_line("IMU Calibrating", 0)
