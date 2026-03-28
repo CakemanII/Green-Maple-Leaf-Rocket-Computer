@@ -43,6 +43,17 @@ class LCDController:
         self._command_queue = queue.Queue()
         self._running = True
 
+        # Live scrolling state
+        self._live_scroll_active = False
+        self._live_scroll_text = ""
+        self._live_scroll_row = 1
+        self._live_scroll_index = 0
+        self._live_scroll_delay = 0.3
+        self._live_scroll_direction = True  # True = right_to_left
+        self._live_scroll_avoid_emotion = True
+        self._live_scroll_padded = ""
+        self._live_scroll_last_frame = 0.0
+
         # Start worker thread (will initialize LCD in background)
         self._worker_thread = threading.Thread(target=self._main, daemon=True)
         self._worker_thread.start()
@@ -74,6 +85,17 @@ class LCDController:
 
         # Process commands
         while self._running:
+            # Handle live scrolling if active
+            if self._live_scroll_active:
+                current_time = time.time()
+                if current_time - self._live_scroll_last_frame >= self._live_scroll_delay:
+                    self._do_live_scroll_frame()
+                    self._live_scroll_last_frame = current_time
+                else:
+                    time.sleep(0.01)  # Small sleep to avoid busy waiting
+                continue
+
+            # Process queued commands
             try:
                 command = self._command_queue.get(timeout=0.1)
                 cmd_type, args = command
@@ -82,6 +104,8 @@ class LCDController:
                     self._do_print_line(*args)
                 elif cmd_type == "scroll_text":
                     self._do_scroll_text(*args)
+                elif cmd_type == "set_live_scrolling_text":
+                    self._do_set_live_scrolling_text(*args)
                 elif cmd_type == "print_emotion":
                     self._do_print_emotion(*args)
                 elif cmd_type == "clear_emotion":
@@ -99,7 +123,10 @@ class LCDController:
 
     # region Actual Controller Functions
     def _do_print_line(self, text, row, align, avoid_overlapping_emotion):
-        """Internal: Execute print_line command."""
+        """Internal: Execute print_line command. Skipped if live scrolling is active on this row."""
+        if self._live_scroll_active and self._live_scroll_row == row:
+            return  # Don't override live scrolling
+
         with self._lcd_lock:
             text = text[:16]
             if align == "center":
@@ -113,7 +140,10 @@ class LCDController:
             self._lcd.write_string(text)
 
     def _do_scroll_text(self, text, row, delay, scroll_right_to_left, avoid_overlapping_emotion):
-        """Internal: Execute scroll_text command."""
+        """Internal: Execute scroll_text command. Skipped if live scrolling is active on this row."""
+        if self._live_scroll_active and self._live_scroll_row == row:
+            return  # Don't override live scrolling
+
         padded = " " * 16 + text + " " * 16
         if scroll_right_to_left:
             indices = range(len(padded) - 15)
@@ -121,12 +151,60 @@ class LCDController:
             indices = range(len(padded) - 16, -1, -1)
 
         for i in indices:
+            if self._live_scroll_active and self._live_scroll_row == row:
+                return  # Stop if live scrolling started
+
             with self._lcd_lock:
                 visible_text = padded[i:i + 16]
                 visible_text = self._apply_emotion_overlay(visible_text, row, avoid_overlapping_emotion)
                 self._lcd.cursor_pos = (row, 0)
                 self._lcd.write_string(visible_text)
             time.sleep(delay)
+
+    def _do_set_live_scrolling_text(self, text, row, delay, scroll_right_to_left, avoid_overlapping_emotion, enabled):
+        """Internal: Set or disable live scrolling text."""
+        if not enabled:
+            self._live_scroll_active = False
+            return
+
+        # Setup live scrolling
+        self._live_scroll_text = text
+        self._live_scroll_row = row
+        self._live_scroll_delay = delay
+        self._live_scroll_direction = scroll_right_to_left
+        self._live_scroll_avoid_emotion = avoid_overlapping_emotion
+        self._live_scroll_padded = " " * 16 + text + " " * 16
+        
+        # Start from the beginning
+        if scroll_right_to_left:
+            self._live_scroll_index = 0
+        else:
+            self._live_scroll_index = len(self._live_scroll_padded) - 16
+        
+        self._live_scroll_last_frame = time.time()
+        self._live_scroll_active = True
+
+    def _do_live_scroll_frame(self):
+        """Internal: Render one frame of live scrolling text."""
+        with self._lcd_lock:
+            if not self._live_scroll_padded:
+                return
+
+            # Get the 16-char window
+            visible_text = self._live_scroll_padded[self._live_scroll_index:self._live_scroll_index + 16]
+            visible_text = self._apply_emotion_overlay(visible_text, self._live_scroll_row, self._live_scroll_avoid_emotion)
+            self._lcd.cursor_pos = (self._live_scroll_row, 0)
+            self._lcd.write_string(visible_text)
+
+            # Update index for next frame
+            if self._live_scroll_direction:  # right_to_left
+                self._live_scroll_index += 1
+                if self._live_scroll_index > len(self._live_scroll_padded) - 16:
+                    self._live_scroll_index = 0
+            else:  # left_to_right
+                self._live_scroll_index -= 1
+                if self._live_scroll_index < 0:
+                    self._live_scroll_index = len(self._live_scroll_padded) - 16
 
     def _do_print_emotion(self, emotion, horizontal_position):
         """Internal: Execute print_emotion command."""
@@ -223,7 +301,16 @@ class LCDController:
  
     def scroll_text(self, text, row=1, delay=0.3, scroll_right_to_left=True, avoid_overlapping_emotion=True):
         """Queue a scroll_text command (non-blocking)."""
-        self._command_queue.put(("scroll_text", (text, row, delay, scroll_right_to_left, avoid_overlapping_emotion))) 
+        self._command_queue.put(("scroll_text", (text, row, delay, scroll_right_to_left, avoid_overlapping_emotion)))
+
+    def set_live_scrolling_text(self, text, row=1, delay=0.3, scroll_right_to_left=True, avoid_overlapping_emotion=True, enabled=True):
+        """Queue a set_live_scrolling_text command (non-blocking). 
+        
+        When enabled, turns on live scrolling that can be updated without resetting position.
+        Live scrolling cannot be overridden by other text commands (except emotion if avoid is off).
+        Pass enabled=False to stop live scrolling.
+        """
+        self._command_queue.put(("set_live_scrolling_text", (text, row, delay, scroll_right_to_left, avoid_overlapping_emotion, enabled)))
 
     def print_emotion(self, emotion: EMOTION, horizontal_position=0):
         """Queue a print_emotion command (non-blocking)."""

@@ -1,3 +1,5 @@
+import datetime
+
 import rocket_controller
 from rocket_gcs_communication import RocketCommunication
 from rocket_controller import RocketController
@@ -30,7 +32,7 @@ class RocketComputer:
     def _main_test(self):
         while True:
             time.sleep(0.25)
-            print("Sensor Data: IMU, GPS, DPS")
+            print("Sensor Data: IMU, GPS, DPS | " + str(datetime.now()))
             gps_data = self._rocket_sensor_data.get_gps_data()
             imu_data = self._rocket_sensor_data.get_imu_data()
             dps_data = self._rocket_sensor_data.get_dps_data()
@@ -38,6 +40,12 @@ class RocketComputer:
             print(f"IMU: {imu_data}")
             print(f"DPS: {dps_data}")
             print("--------------------------------------------------" + "\n"*20)
+
+            dps_is_valid = dps_data is not None
+            imu_is_valid = imu_data is not None
+            gps_is_valid = gps_data is not None
+            self._rocket_controller._lcd.print_line(f"D: {dps_is_valid} I: {imu_is_valid} G: {gps_is_valid}", 0)
+            self._rocket_controller._lcd.print_line(f"", 1)
 
 
     def _add_command_listeners(self):

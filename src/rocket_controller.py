@@ -62,14 +62,9 @@ class RocketController:
 
         # Alert everything has been initialized and calibrated
         self._lcd.clear()
-        for _ in range(2):
-            time.sleep(0.5)
-            self._lcd.print_line("All Sensors", 0)
-            self._lcd.print_line("Calibrated!", 1)
-            self._lcd.print_emotion(LCDController.SMILEY_FACE, 13)
-            time.sleep(0.5)
-            self._lcd.clear()
-            self._lcd.clear_emotion()
+        self._lcd.print_line("All Sensors", 0)
+        self._lcd.print_line("Calibrated!", 1)
+        self._lcd.print_emotion(LCDController.SMILEY_FACE, 13)
 
 
     def is_co2_breach_triggered(self) -> bool: return self._co2_breach_triggered
