@@ -70,3 +70,4 @@ class LCDController:
 
 lcd = LCDController()
 lcd.print_line("Hello, World!", align="center")
+time.sleep(3)
