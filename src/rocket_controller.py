@@ -33,6 +33,7 @@ class RocketController:
         # Create LCD
         self._lcd = LCDController()
         self._lcd.print_line("Initializing...", 0)
+        self._lcd.print_line("Please Wait...", 1)
         time.sleep(2)
         time.sleep(2)
 
