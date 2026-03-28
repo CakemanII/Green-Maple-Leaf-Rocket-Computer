@@ -1,11 +1,7 @@
 RPLCD==1.1.0
 
-RPi.GPIO>=0.7.0
 gpiozero>=2.0.0
-board>=1.0.0
-
 Adafruit-Blinka>=8.0.0
-busio>=1.10.0
 
 adafruit-circuitpython-dps310>=1.1.0
 adafruit-circuitpython-bno08x>=0.10.0
