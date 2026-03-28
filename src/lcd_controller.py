@@ -2,51 +2,15 @@ from RPLCD.i2c import CharLCD
 import time
  
 class LCDController:
-    SMILEY_FACE = {
-        "top_left": (
-            0b00111,
-            0b01111,
-            0b11000,
-            0b10011,
-            0b10011,
-            0b11000,
-            0b01111,
-            0b00111,
-        ),
-
-        "top_right": (
-            0b11100,
-            0b11110,
-            0b00011,
-            0b11001,
-            0b11001,
-            0b00011,
-            0b11110,
-            0b11100,
-        ),
-
-        "bot_left": (
-            0b11000,
-            0b10001,
-            0b10001,
-            0b01001,
-            0b00111,
-            0b00011,
-            0b01111,
-            0b00111,
-        ),
-        
-        "bot_right": (
-            0b00011,
-            0b10001,
-            0b10001,
-            0b10010,
-            0b11100,
-            0b11000,
-            0b11110,
-            0b11100,
-        )
-    }
+    # Custom character bitmaps for smiley face
+    SMILEY_FACE = [
+        (0b00001, 0b00011, 0b00111, 0b01110, 0b11110, 0b11111, 0b11111, 0b11111),
+        (0b11111, 0b11111, 0b11111, 0b01110, 0b01110, 0b11111, 0b11111, 0b11111),
+        (0b10000, 0b11000, 0b11100, 0b01110, 0b01111, 0b11111, 0b11111, 0b11111),
+        (0b11011, 0b11000, 0b11100, 0b11110, 0b01111, 0b00111, 0b00011, 0b00001),
+        (0b11111, 0b00000, 0b00000, 0b00000, 0b00000, 0b11111, 0b11111, 0b11111),
+        (0b11011, 0b00011, 0b00111, 0b01111, 0b11110, 0b11100, 0b11000, 0b10000)
+   ]
 
     def __init__(self):
         self._verify_lcd_device()
@@ -99,16 +63,14 @@ class LCDController:
     def print_smiley_face(self):
         """Print a smiley face using custom characters."""
         # Create custom characters for the smiley face
-        self._lcd.create_char(0, self.SMILEY_FACE["top_left"])
-        self._lcd.create_char(1, self.SMILEY_FACE["top_right"])
-        self._lcd.create_char(2, self.SMILEY_FACE["bot_left"])
-        self._lcd.create_char(3, self.SMILEY_FACE["bot_right"])
+        for i, bitmap in enumerate(LCDController.SMILEY_FACE):
+            self._lcd.create_char(i, bitmap)
 
         # Print the smiley face using the custom characters
-        self._lcd.cursor_pos = (0, 5)
-        self._lcd.write_string(chr(0) + chr(1))
-        self._lcd.cursor_pos = (1, 5)
-        self._lcd.write_string(chr(2) + chr(3))
+        self._lcd.cursor_pos = (0, 0)
+        self._lcd.write_string(chr(0) + chr(1) + chr(2) + chr(3))
+        self._lcd.cursor_pos = (1, 0)
+        self._lcd.write_string(chr(4) + chr(5) + chr(6) + chr(7))
 
     def clear(self):
         """Clear the LCD display."""
