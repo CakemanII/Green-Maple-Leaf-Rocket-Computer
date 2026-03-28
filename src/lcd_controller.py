@@ -43,18 +43,7 @@ class LCDController:
         for i in range(len(padded) - 15):
             self._lcd.cursor_pos = (row, 0)
             self._lcd.write_string(padded[i:i + 16])
-            time.sleep(delay)
- 
- 
-    def print_vertical(self, text, delay=0.6):
-        """Display text vertically, 2 characters at a time."""
-        text = text.upper()
-        for i in range(0, len(text), 2):
-            self._lcd.clear()
-            self.print_line(text[i], row=0, align="center")
-            self.print_line(text[i + 1] if i + 1 < len(text) else " ", row=1, align="center")
-            time.sleep(delay)
- 
+            time.sleep(delay) 
 
     def clear(self):
         """Clear the LCD display."""
@@ -70,7 +59,12 @@ class LCDController:
 
 lcd = LCDController()
 lcd.print_line("Hello, World!", align="center")
+lcd.clear()
 time.sleep(1)
-lcd.scroll_text("Welcome to the Rocket Computer! "*5, delay=0.1)
+lcd.scroll_text("Welcome to the Rocket Computer! "*5, delay=0.2)
 time.sleep(1)
-lcd.print_vertical("Rocket Computer", delay=0.5)
+for _ in range(5):
+    lcd.backlight_off()
+    time.sleep(0.5)
+    lcd.backlight_on()
+    time.sleep(0.5)
