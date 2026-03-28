@@ -14,7 +14,7 @@ class LCDController:
                     address=0x27,
                     port=1,
                     cols=16,
-                    rows=2,
+                    rows=3,
                     charmap='A02',
                     auto_linebreaks=True
                 )
@@ -49,16 +49,17 @@ class LCDController:
         """Clear the LCD display."""
         self._lcd.clear()
 
-    def backlight_on(self):
+    def screen_on(self):
         """Turn on the LCD backlight."""
         self._lcd.backlight_enabled = True
 
-    def backlight_off(self):
+    def screen_off(self):
         """Turn off the LCD backlight."""
         self._lcd.backlight_enabled = False
 
 lcd = LCDController()
 lcd.print_line("Hello, World!", align="center")
+time.sleep(0.5)
 lcd.clear()
 time.sleep(1)
 lcd.scroll_text("Welcome to the Rocket Computer! "*5, delay=0.2)
@@ -66,5 +67,5 @@ time.sleep(1)
 for _ in range(5):
     lcd.backlight_off()
     time.sleep(0.5)
-    lcd.backlight_on()
+    lcd.screen_on()
     time.sleep(0.5)
