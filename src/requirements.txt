@@ -1,0 +1,25 @@
+# LCD Display
+RPLCD==1.1.0
+
+# Raspberry Pi Hardware & GPIO
+RPi.GPIO>=0.7.0
+gpiozero>=2.0.0
+board>=1.0.0
+
+# I2C Communication
+Adafruit-Blinka>=8.0.0
+busio>=1.10.0
+
+# Sensors - Adafruit Libraries
+adafruit-circuitpython-dps310>=1.1.0
+adafruit-circuitpython-bno08x>=0.10.0
+
+# Radio Communication
+adafruit-circuitpython-rfm9x>=2.2.0
+
+# GPS
+pyserial>=3.5
+pynmea2>=1.19.0
+
+# Encryption
+cryptography>=41.0.0

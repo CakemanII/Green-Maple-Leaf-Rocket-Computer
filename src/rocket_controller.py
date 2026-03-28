@@ -71,7 +71,6 @@ class RocketController:
         """
         Set the piezo buzzer state.
         """        
-        pass
         # Turn on or off the piezo buzzer based on the state parameter
         # ...
 
