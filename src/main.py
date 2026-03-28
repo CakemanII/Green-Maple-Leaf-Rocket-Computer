@@ -31,7 +31,7 @@ class RocketComputer:
 
     def _main_test(self):
         while True:
-            time.sleep(0.25)
+            time.sleep(0.1)
             print("Sensor Data: IMU, GPS, DPS | " + str(datetime.now()))
             gps_data = self._rocket_sensor_data.get_gps_data()
             imu_data = self._rocket_sensor_data.get_imu_data()
