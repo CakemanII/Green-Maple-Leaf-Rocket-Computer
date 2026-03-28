@@ -198,8 +198,9 @@ class LCDController:
         else:
             self._live_scroll_index[row] = len(self._live_scroll_padded[row]) - 16
         
-        # Initialize frame timing to current time so first frame fires immediately
-        self._live_scroll_last_frame[row] = time.time()
+        # Initialize frame timing to the past so first frame fires immediately
+        # Set to (now - delay) so the timing check will pass on next loop iteration
+        self._live_scroll_last_frame[row] = time.time() - delay
         self._live_scroll_active[row] = True
 
     def _do_live_scroll_frame(self, row):
@@ -343,7 +344,7 @@ class LCDController:
         """Queue a scroll_text command (non-blocking)."""
         self._command_queue.put(("scroll_text", (text, row, delay, scroll_right_to_left, avoid_overlapping_emotion)))
 
-    def set_live_scrolling_text(self, text, row=1, delay=0.3, scroll_right_to_left=True, avoid_overlapping_emotion=True, enabled=True, seamless_wrap=False):
+    def set_live_scrolling_text(self, text, row=1, delay=0.3, scroll_right_to_left=True, avoid_overlapping_emotion=True, enabled=True, seamless_wrap=True):
         """Queue a set_live_scrolling_text command (non-blocking). 
         
         When enabled, turns on live scrolling that can be updated without resetting position.
