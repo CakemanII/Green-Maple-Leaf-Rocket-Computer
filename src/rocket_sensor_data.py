@@ -25,12 +25,12 @@ class RocketSensorData:
         """
         Update the sensor data by retrieving the latest data from the rocket controller.
         """
-        data = self._rocket_controller.get_gps_sensor_data()
-        self._gps_data = (time.time(), data)
+        # data = self._rocket_controller.get_gps_sensor_data()
+        # self._gps_data = (time.time(), data)
         data = self._rocket_controller.get_dps_sensor_data()
         self._dps_data = (time.time(), data)
-        data = self._rocket_controller.get_imu_sensor_data()
-        self._imu_data = (time.time(), data)
+        # data = self._rocket_controller.get_imu_sensor_data()
+        # self._imu_data = (time.time(), data)
 
 
     def _main(self):
