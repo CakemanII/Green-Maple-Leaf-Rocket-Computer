@@ -44,16 +44,15 @@ class LCDController:
         self._command_queue = queue.Queue()
         self._running = True
 
-        # Live scrolling state
-        self._live_scroll_active = False
-        self._live_scroll_text = ""
-        self._live_scroll_row = 1
-        self._live_scroll_index = 0
-        self._live_scroll_delay = 0.3
-        self._live_scroll_direction = True  # True = right_to_left
-        self._live_scroll_avoid_emotion = True
-        self._live_scroll_padded = ""
-        self._live_scroll_last_frame = 0.0
+        # Live scrolling state (per row: 0 and 1)
+        self._live_scroll_active = {0: False, 1: False}
+        self._live_scroll_text = {0: "", 1: ""}
+        self._live_scroll_index = {0: 0, 1: 0}
+        self._live_scroll_delay = {0: 0.3, 1: 0.3}
+        self._live_scroll_direction = {0: True, 1: True}  # True = right_to_left
+        self._live_scroll_avoid_emotion = {0: True, 1: True}
+        self._live_scroll_padded = {0: "", 1: ""}
+        self._live_scroll_last_frame = {0: 0.0, 1: 0.0}
 
         # Start worker thread (will initialize LCD in background)
         self._worker_thread = threading.Thread(target=self._main, daemon=True)
@@ -86,14 +85,21 @@ class LCDController:
 
         # Process commands
         while self._running:
-            # Handle live scrolling if active
-            if self._live_scroll_active:
+            # Handle live scrolling if active on any row
+            any_scrolling = self._live_scroll_active.get(0, False) or self._live_scroll_active.get(1, False)
+            if any_scrolling:
                 current_time = time.time()
-                if current_time - self._live_scroll_last_frame >= self._live_scroll_delay:
-                    self._do_live_scroll_frame()
-                    self._live_scroll_last_frame = current_time
-                else:
-                    time.sleep(0.01)  # Small sleep to avoid busy waiting
+                # Check and render row 0 if active and timing is due
+                if self._live_scroll_active.get(0, False):
+                    if current_time - self._live_scroll_last_frame.get(0, 0) >= self._live_scroll_delay.get(0, 0.3):
+                        self._do_live_scroll_frame(0)
+                        self._live_scroll_last_frame[0] = current_time
+                # Check and render row 1 if active and timing is due
+                if self._live_scroll_active.get(1, False):
+                    if current_time - self._live_scroll_last_frame.get(1, 0) >= self._live_scroll_delay.get(1, 0.3):
+                        self._do_live_scroll_frame(1)
+                        self._live_scroll_last_frame[1] = current_time
+                time.sleep(0.01)  # Small sleep to avoid busy waiting
                 continue
 
             # Process queued commands
@@ -125,7 +131,7 @@ class LCDController:
     # region Actual Controller Functions
     def _do_print_line(self, text, row, align, avoid_overlapping_emotion):
         """Internal: Execute print_line command. Skipped if live scrolling is active on this row."""
-        if self._live_scroll_active and self._live_scroll_row == row:
+        if self._live_scroll_active.get(row, False):
             return  # Don't override live scrolling
 
         with self._lcd_lock:
@@ -142,7 +148,7 @@ class LCDController:
 
     def _do_scroll_text(self, text, row, delay, scroll_right_to_left, avoid_overlapping_emotion):
         """Internal: Execute scroll_text command. Skipped if live scrolling is active on this row."""
-        if self._live_scroll_active and self._live_scroll_row == row:
+        if self._live_scroll_active.get(row, False):
             return  # Don't override live scrolling
 
         padded = " " * 16 + text + " " * 16
@@ -152,7 +158,7 @@ class LCDController:
             indices = range(len(padded) - 16, -1, -1)
 
         for i in indices:
-            if self._live_scroll_active and self._live_scroll_row == row:
+            if self._live_scroll_active.get(row, False):
                 return  # Stop if live scrolling started
 
             with self._lcd_lock:
@@ -165,55 +171,54 @@ class LCDController:
     def _do_set_live_scrolling_text(self, text, row, delay, scroll_right_to_left, avoid_overlapping_emotion, enabled, seamless_wrap):
         """Internal: Set or disable live scrolling text."""
         if not enabled:
-            self._live_scroll_active = False
+            self._live_scroll_active[row] = False
             return
 
-        # Setup live scrolling
-        self._live_scroll_text = text
-        self._live_scroll_row = row
-        self._live_scroll_delay = delay
-        self._live_scroll_direction = scroll_right_to_left
-        self._live_scroll_avoid_emotion = avoid_overlapping_emotion
+        # Setup live scrolling for this row
+        self._live_scroll_text[row] = text
+        self._live_scroll_delay[row] = delay
+        self._live_scroll_direction[row] = scroll_right_to_left
+        self._live_scroll_avoid_emotion[row] = avoid_overlapping_emotion
         
         # Create padded or repeated text
         if seamless_wrap and text:
             # Repeat text to create seamless wrapping (at least 32 chars total)
             repeat_count = max(2, math.ceil(32 / len(text)))
-            self._live_scroll_padded = text * repeat_count
+            self._live_scroll_padded[row] = text * repeat_count
         else:
             # Original padding approach with spaces
-            self._live_scroll_padded = " " * 16 + text + " " * 16
+            self._live_scroll_padded[row] = " " * 16 + text + " " * 16
         
         # Start from the beginning
         if scroll_right_to_left:
-            self._live_scroll_index = 0
+            self._live_scroll_index[row] = 0
         else:
-            self._live_scroll_index = len(self._live_scroll_padded) - 16
+            self._live_scroll_index[row] = len(self._live_scroll_padded[row]) - 16
         
-        self._live_scroll_last_frame = time.time()
-        self._live_scroll_active = True
+        self._live_scroll_last_frame[row] = time.time()
+        self._live_scroll_active[row] = True
 
-    def _do_live_scroll_frame(self):
-        """Internal: Render one frame of live scrolling text."""
+    def _do_live_scroll_frame(self, row):
+        """Internal: Render one frame of live scrolling text for the specified row."""
         with self._lcd_lock:
-            if not self._live_scroll_padded:
+            if not self._live_scroll_padded.get(row, ""):
                 return
 
             # Get the 16-char window
-            visible_text = self._live_scroll_padded[self._live_scroll_index:self._live_scroll_index + 16]
-            visible_text = self._apply_emotion_overlay(visible_text, self._live_scroll_row, self._live_scroll_avoid_emotion)
-            self._lcd.cursor_pos = (self._live_scroll_row, 0)
+            visible_text = self._live_scroll_padded[row][self._live_scroll_index[row]:self._live_scroll_index[row] + 16]
+            visible_text = self._apply_emotion_overlay(visible_text, row, self._live_scroll_avoid_emotion[row])
+            self._lcd.cursor_pos = (row, 0)
             self._lcd.write_string(visible_text)
 
             # Update index for next frame
-            if self._live_scroll_direction:  # right_to_left
-                self._live_scroll_index += 1
-                if self._live_scroll_index > len(self._live_scroll_padded) - 16:
-                    self._live_scroll_index = 0
+            if self._live_scroll_direction[row]:  # right_to_left
+                self._live_scroll_index[row] += 1
+                if self._live_scroll_index[row] > len(self._live_scroll_padded[row]) - 16:
+                    self._live_scroll_index[row] = 0
             else:  # left_to_right
-                self._live_scroll_index -= 1
-                if self._live_scroll_index < 0:
-                    self._live_scroll_index = len(self._live_scroll_padded) - 16
+                self._live_scroll_index[row] -= 1
+                if self._live_scroll_index[row] < 0:
+                    self._live_scroll_index[row] = len(self._live_scroll_padded[row]) - 16
 
     def _do_print_emotion(self, emotion, horizontal_position):
         """Internal: Execute print_emotion command."""
