@@ -85,26 +85,9 @@ class LCDController:
 
         # Process commands
         while self._running:
-            # Handle live scrolling if active on any row
-            any_scrolling = self._live_scroll_active.get(0, False) or self._live_scroll_active.get(1, False)
-            if any_scrolling:
-                current_time = time.time()
-                # Check and render row 0 if active and timing is due
-                if self._live_scroll_active.get(0, False):
-                    if current_time - self._live_scroll_last_frame.get(0, 0) >= self._live_scroll_delay.get(0, 0.3):
-                        self._do_live_scroll_frame(0)
-                        self._live_scroll_last_frame[0] = current_time
-                # Check and render row 1 if active and timing is due
-                if self._live_scroll_active.get(1, False):
-                    if current_time - self._live_scroll_last_frame.get(1, 0) >= self._live_scroll_delay.get(1, 0.3):
-                        self._do_live_scroll_frame(1)
-                        self._live_scroll_last_frame[1] = current_time
-                time.sleep(0.01)  # Small sleep to avoid busy waiting
-                continue
-
-            # Process queued commands
+            # Process queued commands (non-blocking)
             try:
-                command = self._command_queue.get(timeout=0.1)
+                command = self._command_queue.get(timeout=0.01)
                 cmd_type, args = command
 
                 if cmd_type == "print_line":
@@ -124,9 +107,22 @@ class LCDController:
                 elif cmd_type == "screen_off":
                     self._do_screen_off()
             except queue.Empty:
-                continue
-            except Exception as e:
-                print(f"LCD worker error: {e}")
+                pass
+
+            # Handle live scrolling if active on any row
+            current_time = time.time()
+            # Render row 0 if active and timing is due
+            if self._live_scroll_active.get(0, False):
+                if current_time - self._live_scroll_last_frame.get(0, 0) >= self._live_scroll_delay.get(0, 0.3):
+                    self._do_live_scroll_frame(0)
+                    self._live_scroll_last_frame[0] = current_time
+            # Render row 1 if active and timing is due
+            if self._live_scroll_active.get(1, False):
+                if current_time - self._live_scroll_last_frame.get(1, 0) >= self._live_scroll_delay.get(1, 0.3):
+                    self._do_live_scroll_frame(1)
+                    self._live_scroll_last_frame[1] = current_time
+
+            time.sleep(0.01)  # Small sleep to avoid busy waiting
 
     # region Actual Controller Functions
     def _do_print_line(self, text, row, align, avoid_overlapping_emotion):
