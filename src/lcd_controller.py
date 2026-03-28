@@ -76,6 +76,7 @@ class LCDController:
                 self._lcd.cursor = False
                 self._lcd.blink = False
                 self._do_clear()  # Clear the display on startup
+                self._do_screen_on()  # Ensure backlight is on
                 print("LCD initialized successfully")
                 break
             except Exception as e:
