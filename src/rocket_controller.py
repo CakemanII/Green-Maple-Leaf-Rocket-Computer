@@ -9,6 +9,7 @@ from imu_controller import IMUSensorController
 from dps_controller import DPSSensorController
 from gps_controller import GPSSensorController
 from lcd_controller import LCDController
+from piezo_controller import PiezoController
 
 Color = tuple[int, int, int]
 
@@ -17,11 +18,7 @@ class RocketController:
     ITERATION_DELAY: float = 0.75
 
     def __init__(self):
-        self._fans_pin = gpiozero.PWMOutputDevice(15)  # Example GPIO pin for fan control
-        self._peizo_pin = gpiozero.PWMOutputDevice(18)  # Example GPIO pin for piezo buzzer control
-
         self._co2_breach_triggered = False
-        self._peizo_is_active = False
 
         # I2C SETUP
         # Initialize the I2C bus using Raspberry Pi hardware pins (SCL/SDA)
@@ -31,13 +28,16 @@ class RocketController:
         time.sleep(1.5)
 
         # Create LCD
+        self._piezo = PiezoController()
         self._lcd = LCDController()
 
         # Alert to not move the rocket computer during sensor initialization and calibration
         for _ in range(8):
             self._lcd.screen_off()
+            self._piezo.set_buzzer(1000, 50)  # Beep at 1 kHz with 50% volume
             time.sleep(0.15)
             self._lcd.screen_on()
+            self._piezo.set_buzzer(1000, 50)  # Beep at 1 kHz with 50% volume
             time.sleep(0.15)
         self._lcd.print_line("IMU Calibrating", 0)
         self._lcd.print_line("Keep Still!!!", 1)
