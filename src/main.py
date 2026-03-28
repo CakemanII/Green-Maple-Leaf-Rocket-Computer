@@ -44,8 +44,7 @@ class RocketComputer:
             dps_is_valid = dps_data is not None
             imu_is_valid = imu_data is not None
             gps_is_valid = gps_data is not None
-            self._rocket_controller._lcd.print_line(f"D: {dps_is_valid} I: {imu_is_valid} G: {gps_is_valid}", 0)
-            self._rocket_controller._lcd.print_line(f"", 1)
+            self._rocket_controller._lcd.set_live_scrolling_text(f"D: {dps_is_valid} I: {imu_is_valid} G: {gps_is_valid}", 0)
 
 
     def _add_command_listeners(self):
