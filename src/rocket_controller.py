@@ -34,11 +34,11 @@ class RocketController:
         self._lcd = LCDController()
 
         # Alert to not move the rocket computer during sensor initialization and calibration
-        for _ in range(5):
+        for _ in range(8):
             self._lcd.screen_off()
-            time.sleep(0.25)
+            time.sleep(0.15)
             self._lcd.screen_on()
-            time.sleep(0.25)
+            time.sleep(0.15)
         self._lcd.print_line("IMU Calibrating", 0)
         self._lcd.print_line("Keep Still!!!", 1)
         
@@ -59,9 +59,12 @@ class RocketController:
         self._dps = DPSSensorController(self._i2c)
 
         # Alert everything has been initialized and calibrated
-        time.sleep(0.25)
-        self._lcd.print_line("All Sensors", 0)
-        self._lcd.print_line("Calibrated!", 1)
+        for _ in range(4):
+            time.sleep(0.25)
+            self._lcd.print_line("All Sensors", 0)
+            self._lcd.print_line("Calibrated!", 1)
+            time.sleep(0.25)
+            self._lcd.clear()
         self._lcd.print_emotion(LCDController.SMILEY_FACE, 13)
 
     def is_co2_breach_triggered(self) -> bool: return self._co2_breach_triggered
