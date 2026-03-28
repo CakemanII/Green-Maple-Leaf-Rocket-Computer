@@ -34,6 +34,8 @@ class RocketController:
         self._lcd = LCDController()
 
         # Alert to not move the rocket computer during sensor initialization and calibration
+        self._lcd.clear()
+        self._lcd.clear_emotion()
         for _ in range(8):
             self._lcd.screen_off()
             time.sleep(0.15)
