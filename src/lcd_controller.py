@@ -1,6 +1,7 @@
 from RPLCD.i2c import CharLCD
 import time
 import threading
+import queue
  
 EMOTION = list[tuple[int, int, int, int, int, int, int, int]]
 
@@ -34,11 +35,17 @@ class LCDController:
     ]
 
     def __init__(self):
+        self._lcd = None
         self._emotion_visible = False
         self._emotion_position = None
         self._current_emotion = None
         self._lcd_lock = threading.Lock()
-        self._verify_lcd_device()
+        self._command_queue = queue.Queue()
+        self._running = True
+
+        # Start worker thread (will initialize LCD in background)
+        self._worker_thread = threading.Thread(target=self._main, daemon=True)
+        self._worker_thread.start()
 
     def _verify_lcd_device(self):
         while True:
@@ -60,25 +67,39 @@ class LCDController:
                 print(f"LCD initialization failed: {e}. Retrying in 0.5 seconds...")
                 time.sleep(0.5)
 
-    def _apply_emotion_overlay(self, text, row, avoid_overlapping_emotion):
-        """Keep the emotion visible by restoring its glyphs on protected cells."""
-        if not (avoid_overlapping_emotion and self._emotion_visible and self._emotion_position is not None):
-            return text
+    def _main(self):
+        """Worker thread that initializes LCD and processes commands from the queue."""
+        # Initialize LCD on worker thread (non-blocking to caller)
+        self._verify_lcd_device()
 
-        if row not in (0, 1):
-            return text
+        # Process commands
+        while self._running:
+            try:
+                command = self._command_queue.get(timeout=0.1)
+                cmd_type, args = command
 
-        chars = list(text)
-        base_char = 0 if row == 0 else 3
-        for offset in range(3):
-            col = self._emotion_position + offset
-            if 0 <= col < 16:
-                chars[col] = chr(base_char + offset)
+                if cmd_type == "print_line":
+                    self._do_print_line(*args)
+                elif cmd_type == "scroll_text":
+                    self._do_scroll_text(*args)
+                elif cmd_type == "print_emotion":
+                    self._do_print_emotion(*args)
+                elif cmd_type == "clear_emotion":
+                    self._do_clear_emotion()
+                elif cmd_type == "clear":
+                    self._do_clear()
+                elif cmd_type == "screen_on":
+                    self._do_screen_on()
+                elif cmd_type == "screen_off":
+                    self._do_screen_off()
+            except queue.Empty:
+                continue
+            except Exception as e:
+                print(f"LCD worker error: {e}")
 
-        return "".join(chars)
- 
-    def print_line(self, text, row=0, align="left", avoid_overlapping_emotion=True):
-        """Print text on a full line with optional alignment."""
+    # region Actual Controller Functions
+    def _do_print_line(self, text, row, align, avoid_overlapping_emotion):
+        """Internal: Execute print_line command."""
         with self._lcd_lock:
             text = text[:16]
             if align == "center":
@@ -90,9 +111,9 @@ class LCDController:
             text = self._apply_emotion_overlay(text, row, avoid_overlapping_emotion)
             self._lcd.cursor_pos = (row, 0)
             self._lcd.write_string(text)
- 
-    def scroll_text(self, text, row=1, delay=0.3, scroll_right_to_left=True, avoid_overlapping_emotion=True):
-        """Scroll a long string across one row in either direction."""
+
+    def _do_scroll_text(self, text, row, delay, scroll_right_to_left, avoid_overlapping_emotion):
+        """Internal: Execute scroll_text command."""
         padded = " " * 16 + text + " " * 16
         if scroll_right_to_left:
             indices = range(len(padded) - 15)
@@ -105,10 +126,10 @@ class LCDController:
                 visible_text = self._apply_emotion_overlay(visible_text, row, avoid_overlapping_emotion)
                 self._lcd.cursor_pos = (row, 0)
                 self._lcd.write_string(visible_text)
-            time.sleep(delay) 
+            time.sleep(delay)
 
-    def print_emotion(self, emotion: EMOTION, horizontal_position=0):
-        """Print an emotion using custom characters. Only one emotion visible at a time."""
+    def _do_print_emotion(self, emotion, horizontal_position):
+        """Internal: Execute print_emotion command."""
         # Skip if this exact emotion is already displayed at this position
         if (self._current_emotion == emotion and 
             self._emotion_position == horizontal_position and 
@@ -141,8 +162,24 @@ class LCDController:
             self._emotion_position = horizontal_position
             self._current_emotion = emotion
 
-    def clear(self):
-        """Clear the LCD display."""
+    def _do_clear_emotion(self):
+        """Internal: Execute clear_emotion command."""
+        with self._lcd_lock:
+            if self._emotion_visible and self._emotion_position is not None:
+                pos = self._emotion_position
+                self._lcd.cursor_pos = (0, pos)
+                self._lcd.write_string("   ")  # Clear 3 chars on row 0
+                self._lcd.cursor_pos = (1, pos)
+                self._lcd.write_string("   ")  # Clear 3 chars on row 1
+                time.sleep(0.02)
+
+        # Reset emotion state
+        self._emotion_visible = False
+        self._emotion_position = None
+        self._current_emotion = None
+
+    def _do_clear(self):
+        """Internal: Execute clear command."""
         with self._lcd_lock:
             self._lcd.clear()
 
@@ -151,21 +188,66 @@ class LCDController:
         self._emotion_position = None
         self._current_emotion = None
 
+    def _do_screen_on(self):
+        """Internal: Execute screen_on command."""
+        with self._lcd_lock:
+            self._lcd.backlight_enabled = True
+
+    def _do_screen_off(self):
+        """Internal: Execute screen_off command."""
+        with self._lcd_lock:
+            self._lcd.backlight_enabled = False
+    # endregion
+
+    def _apply_emotion_overlay(self, text, row, avoid_overlapping_emotion):
+        """Keep the emotion visible by restoring its glyphs on protected cells."""
+        if not (avoid_overlapping_emotion and self._emotion_visible and self._emotion_position is not None):
+            return text
+
+        if row not in (0, 1):
+            return text
+
+        chars = list(text)
+        base_char = 0 if row == 0 else 3
+        for offset in range(3):
+            col = self._emotion_position + offset
+            if 0 <= col < 16:
+                chars[col] = chr(base_char + offset)
+
+        return "".join(chars)
+    
+    # region Task Functions
+    def print_line(self, text, row=0, align="left", avoid_overlapping_emotion=True):
+        """Queue a print_line command (non-blocking)."""
+        self._command_queue.put(("print_line", (text, row, align, avoid_overlapping_emotion)))
+ 
+    def scroll_text(self, text, row=1, delay=0.3, scroll_right_to_left=True, avoid_overlapping_emotion=True):
+        """Queue a scroll_text command (non-blocking)."""
+        self._command_queue.put(("scroll_text", (text, row, delay, scroll_right_to_left, avoid_overlapping_emotion))) 
+
+    def print_emotion(self, emotion: EMOTION, horizontal_position=0):
+        """Queue a print_emotion command (non-blocking)."""
+        self._command_queue.put(("print_emotion", (emotion, horizontal_position)))
+
+    def clear_emotion(self):
+        """Queue a clear_emotion command (non-blocking)."""
+        self._command_queue.put(("clear_emotion", ()))
+
+    def clear(self):
+        """Queue a clear command (non-blocking)."""
+        self._command_queue.put(("clear", ()))
+
     def screen_on(self):
-        """Turn on the LCD backlight."""
-        self._lcd.backlight_enabled = True
+        """Queue a screen_on command (non-blocking)."""
+        self._command_queue.put(("screen_on", ()))
 
     def screen_off(self):
-        """Turn off the LCD backlight."""
-        self._lcd.backlight_enabled = False
+        """Queue a screen_off command (non-blocking)."""
+        self._command_queue.put(("screen_off", ()))
 
-if __name__ == "__main__":
-    lcd_controller = LCDController()
-    for _ in range(3):
-        lcd_controller.print_emotion(LCDController.SMILEY_FACE, horizontal_position=5)
-        time.sleep(1)
-        lcd_controller.print_emotion(LCDController.SAD_FACE, horizontal_position=10)
-        time.sleep(1)
-        lcd_controller.print_emotion(LCDController.ANGRY_FACE, horizontal_position=5)
-        time.sleep(1)
-    lcd_controller.scroll_text("Hello, World!"*2, row=1, delay=0.25)
+    def stop(self):
+        """Stop the worker thread (graceful shutdown)."""
+        self._running = False
+        if self._worker_thread.is_alive():
+            self._worker_thread.join(timeout=1.0)
+    # endregion
