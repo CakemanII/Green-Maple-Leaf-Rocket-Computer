@@ -12,8 +12,7 @@ class RocketComputer:
     def __init__(self):
         # Initialize Rocket Controller
         self._rocket_controller = RocketController()
-        time.sleep(0.75)
-
+        
         # Initialize Rocket GCS Communication and start communication
         # self._rocket_communication = RocketCommunication(self._rocket_controller)
         
