@@ -2,6 +2,7 @@ from RPLCD.i2c import CharLCD
 import time
 import threading
 import queue
+import math
  
 EMOTION = list[tuple[int, int, int, int, int, int, int, int]]
 
@@ -161,7 +162,7 @@ class LCDController:
                 self._lcd.write_string(visible_text)
             time.sleep(delay)
 
-    def _do_set_live_scrolling_text(self, text, row, delay, scroll_right_to_left, avoid_overlapping_emotion, enabled):
+    def _do_set_live_scrolling_text(self, text, row, delay, scroll_right_to_left, avoid_overlapping_emotion, enabled, seamless_wrap):
         """Internal: Set or disable live scrolling text."""
         if not enabled:
             self._live_scroll_active = False
@@ -173,7 +174,15 @@ class LCDController:
         self._live_scroll_delay = delay
         self._live_scroll_direction = scroll_right_to_left
         self._live_scroll_avoid_emotion = avoid_overlapping_emotion
-        self._live_scroll_padded = " " * 16 + text + " " * 16
+        
+        # Create padded or repeated text
+        if seamless_wrap and text:
+            # Repeat text to create seamless wrapping (at least 32 chars total)
+            repeat_count = max(2, math.ceil(32 / len(text)))
+            self._live_scroll_padded = text * repeat_count
+        else:
+            # Original padding approach with spaces
+            self._live_scroll_padded = " " * 16 + text + " " * 16
         
         # Start from the beginning
         if scroll_right_to_left:
@@ -303,14 +312,17 @@ class LCDController:
         """Queue a scroll_text command (non-blocking)."""
         self._command_queue.put(("scroll_text", (text, row, delay, scroll_right_to_left, avoid_overlapping_emotion)))
 
-    def set_live_scrolling_text(self, text, row=1, delay=0.3, scroll_right_to_left=True, avoid_overlapping_emotion=True, enabled=True):
+    def set_live_scrolling_text(self, text, row=1, delay=0.3, scroll_right_to_left=True, avoid_overlapping_emotion=True, enabled=True, seamless_wrap=False):
         """Queue a set_live_scrolling_text command (non-blocking). 
         
         When enabled, turns on live scrolling that can be updated without resetting position.
         Live scrolling cannot be overridden by other text commands (except emotion if avoid is off).
+        
+        seamless_wrap: If True, repeats text seamlessly (e.g., "Hi! " loops as "Hi! Hi! Hi! ...")
+                       instead of padding with spaces. No gaps when wrapping.
         Pass enabled=False to stop live scrolling.
         """
-        self._command_queue.put(("set_live_scrolling_text", (text, row, delay, scroll_right_to_left, avoid_overlapping_emotion, enabled)))
+        self._command_queue.put(("set_live_scrolling_text", (text, row, delay, scroll_right_to_left, avoid_overlapping_emotion, enabled, seamless_wrap)))
 
     def print_emotion(self, emotion: EMOTION, horizontal_position=0):
         """Queue a print_emotion command (non-blocking)."""
