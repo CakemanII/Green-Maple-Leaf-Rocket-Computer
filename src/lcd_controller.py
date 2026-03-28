@@ -72,6 +72,10 @@ class LCDController:
                     auto_linebreaks=True
                 )
                 time.sleep(0.5)
+                # Hide the blinking cursor for cleaner display
+                self._lcd.cursor = False
+                self._lcd.blink = False
+                self._do_clear()  # Clear the display on startup
                 print("LCD initialized successfully")
                 break
             except Exception as e:
