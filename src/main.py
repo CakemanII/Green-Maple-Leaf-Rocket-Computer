@@ -12,7 +12,7 @@ class RocketComputer:
     def __init__(self):
         # Initialize Rocket Controller
         self._rocket_controller = RocketController()
-        
+
         # Initialize Rocket GCS Communication and start communication
         # self._rocket_communication = RocketCommunication(self._rocket_controller)
         
@@ -44,9 +44,9 @@ class RocketComputer:
             dps_is_valid = "OP" if dps_data is not None else "ERR"
             imu_is_valid = "OP" if imu_data is not None else "ERR"
             gps_is_valid = "OP" if gps_data is not None else "ERR"
-            self._rocket_controller._lcd.set_live_scrolling_text(f"READY FOR LAUNCH", 0)
+            self._rocket_controller._lcd.set_live_scrolling_text(f"READY FOR LAUNCH ", 0)
             self._rocket_controller._lcd.set_live_scrolling_text(
-                f"DPS: {dps_is_valid}  IMU: {imu_is_valid}  GPS: {gps_is_valid}  CAM: OP  FAN: 0%  PIEZO: 0%", 1)
+                f"DPS: {dps_is_valid}  IMU: {imu_is_valid}  GPS: {gps_is_valid}  CAM: OP  FAN: 0%  PIEZO: 0% ", 1)
 
 
     def _add_command_listeners(self):
