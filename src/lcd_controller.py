@@ -14,7 +14,7 @@ class LCDController:
                     address=0x27,
                     port=1,
                     cols=16,
-                    rows=3,
+                    rows=2,
                     charmap='A02',
                     auto_linebreaks=True
                 )
@@ -65,7 +65,7 @@ time.sleep(1)
 lcd.scroll_text("Welcome to the Rocket Computer! "*5, delay=0.2)
 time.sleep(1)
 for _ in range(5):
-    lcd.backlight_off()
+    lcd.screen_off()
     time.sleep(0.5)
     lcd.screen_on()
     time.sleep(0.5)
