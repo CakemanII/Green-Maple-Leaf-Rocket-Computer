@@ -19,7 +19,7 @@ class RocketComputer:
         self._rocket_sensor_data.start()
 
         # Add listeners for commands
-        self._add_listeners()
+        self._add_command_listeners()
         
         # Start communication
         self._rocket_communication.start_communication()
@@ -28,7 +28,7 @@ class RocketComputer:
         self._main()
 
 
-    def _add_listeners(self):
+    def _add_command_listeners(self):
         """
         Add listeners for commands.
         """
@@ -76,10 +76,21 @@ class RocketComputer:
             print("🚀 Rocket Computer Main Loop Iteration")
             # Check if we should deploy the parachute
             self._detect_deploy_parachute()
-            # Check if we should disengage the motor module
-            self._detect_disengage_motor_module()
             time.sleep(0.05)
 
+    def _send_continuous_telemetry_data(self):
+        while True:
+            # Get sensor data
+            imu_data = self._rocket_sensor_data.get_imu_data()
+            gps_data = self._rocket_sensor_data.get_gps_data()
+
+            # Send data to ground station
+            self._rocket_communication.send_data({
+                "imu": imu_data,
+                "gps": gps_data,
+            })
+
+            time.sleep(0.1)
 
     def _detect_deploy_parachute(self):
         """
@@ -109,24 +120,6 @@ class RocketComputer:
 
         # All conditions met, breach co2 & deploy parachute
         self._rocket_controller.breach_co2_canister()
-        
-    def _detect_disengage_motor_module(self):
-        """
-        Determine when to disengage the motors.
-        """
-        # Ensure motor module has not yet been disengaged.
-        if (self._rocket_controller.is_disengage_motor_module_triggered()):
-            return
-        
-        # At least 3 seconds after launch
-        # ...
-        
-        # Make sure acceleration is less than 0.
-        if (self._rocket_sensor_data.get_imu_data()['acceleration'] < 0):
-            return
-        
-        # All conditions met, disengage motor module
-        self._rocket_controller.disengage_rocket_motor_module()
 
 if __name__ == "__main__":
     RocketComputer()
