@@ -108,19 +108,27 @@ class LCDController:
             time.sleep(delay) 
 
     def print_emotion(self, emotion: EMOTION, horizontal_position=0):
-        """Print an emotion using custom characters."""
-        # Skip if this emotion is already displayed at this position
+        """Print an emotion using custom characters. Only one emotion visible at a time."""
+        # Skip if this exact emotion is already displayed at this position
         if (self._current_emotion == emotion and 
             self._emotion_position == horizontal_position and 
             self._emotion_visible):
             return
 
         with self._lcd_lock:
-            # Only clear and recreate chars if emotion changed
-            if self._current_emotion != emotion:
-                for i, bitmap in enumerate(emotion):
-                    self._lcd.create_char(i, bitmap)
-                time.sleep(0.05)  # Allow controller time to process
+            # Clear previous emotion glyphs if switching emotions
+            if self._emotion_visible and self._current_emotion != emotion:
+                old_pos = self._emotion_position if self._emotion_position is not None else 0
+                self._lcd.cursor_pos = (0, old_pos)
+                self._lcd.write_string("   ")  # Clear 3 chars on row 0
+                self._lcd.cursor_pos = (1, old_pos)
+                self._lcd.write_string("   ")  # Clear 3 chars on row 1
+                time.sleep(0.02)
+
+            # Load new emotion bitmaps
+            for i, bitmap in enumerate(emotion):
+                self._lcd.create_char(i, bitmap)
+            time.sleep(0.05)  # Allow controller time to process
 
             # Print the emotion using the custom characters
             self._lcd.cursor_pos = (0, horizontal_position)
