@@ -171,6 +171,9 @@ class LCDController:
             self._live_scroll_active[row] = False
             return
 
+        was_active = self._live_scroll_active.get(row, False)
+        previous_index = self._live_scroll_index.get(row, 0)
+
         # Setup live scrolling for this row
         self._live_scroll_text[row] = text
         self._live_scroll_delay[row] = delay
@@ -192,15 +195,22 @@ class LCDController:
         if len(self._live_scroll_padded[row]) < 32:
             self._live_scroll_padded[row] = (self._live_scroll_padded[row] + " " * 32)[:32]
         
-        # Start from the beginning
-        if scroll_right_to_left:
-            self._live_scroll_index[row] = 0
+        max_index = max(0, len(self._live_scroll_padded[row]) - 16)
+
+        # Preserve scroll position when already active, even if text is updated.
+        if was_active:
+            self._live_scroll_index[row] = previous_index % (max_index + 1)
         else:
-            self._live_scroll_index[row] = len(self._live_scroll_padded[row]) - 16
-        
-        # Initialize frame timing to the past so first frame fires immediately
-        # Set to (now - delay) so the timing check will pass on next loop iteration
-        self._live_scroll_last_frame[row] = time.time() - delay
+            if scroll_right_to_left:
+                self._live_scroll_index[row] = 0
+            else:
+                self._live_scroll_index[row] = max_index
+
+        # Keep timing when already active so frequent updates do not stall motion.
+        if not was_active:
+            # Set to (now - delay) so first frame fires immediately.
+            self._live_scroll_last_frame[row] = time.time() - delay
+
         self._live_scroll_active[row] = True
 
     def _do_live_scroll_frame(self, row):
