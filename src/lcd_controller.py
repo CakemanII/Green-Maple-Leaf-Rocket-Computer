@@ -68,9 +68,9 @@ class LCDController:
 
         # Print the smiley face using the custom characters
         self._lcd.cursor_pos = (0, 0)
-        self._lcd.write_string(chr(0) + chr(1) + chr(2) + chr(3))
+        self._lcd.write_string(chr(0) + chr(1) + chr(2))
         self._lcd.cursor_pos = (1, 0)
-        self._lcd.write_string(chr(4) + chr(5) + chr(6) + chr(7))
+        self._lcd.write_string(chr(3) + chr(4) + chr(5))
 
     def clear(self):
         """Clear the LCD display."""
