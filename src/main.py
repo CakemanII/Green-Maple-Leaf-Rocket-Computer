@@ -39,7 +39,7 @@ class RocketComputer:
             print(f"GPS: {gps_data}")
             print(f"IMU: {imu_data}")
             print(f"DPS: {dps_data}")
-            print("--------------------------------------------------" + "\n"*1)
+            print("--------------------------------------------------" + "\n"*20)
 
             dps_is_valid = "OP" if dps_data is not None else "ERR"
             imu_is_valid = "OP" if imu_data is not None else "ERR"

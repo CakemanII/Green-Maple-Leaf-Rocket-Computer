@@ -36,7 +36,6 @@ class DPSSensorController(SensorController):
             pressure = self._dps.pressure
             altitude = self._dps.altitude
             temperature = self._dps.temperature
-            print("Retreved data"*25)
             return {
                 "pressure": pressure,
                 "altitude": altitude,
