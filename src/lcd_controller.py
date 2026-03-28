@@ -143,7 +143,7 @@ lcd_controller = LCDController()
 for _ in range(3):
     lcd_controller.print_emotion(LCDController.SMILEY_FACE, horizontal_position=5)
     time.sleep(1)
-    lcd_controller.print_emotion(LCDController.SAD_FACE, horizontal_position=5)
+    lcd_controller.print_emotion(LCDController.SAD_FACE, horizontal_position=10)
     time.sleep(1)
     lcd_controller.print_emotion(LCDController.ANGRY_FACE, horizontal_position=5)
     time.sleep(1)
