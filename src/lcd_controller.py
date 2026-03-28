@@ -103,6 +103,11 @@ class LCDController:
             time.sleep(delay) 
 
     def print_emotion(self, emotion: EMOTION, horizontal_position=0):
+        # Clear the previous emotion if it exists
+        if self._emotion_visible and self._emotion_position is not None:
+            for i in range(6):
+                self._lcd.create_char(i, [0b00000] * 8)
+
         """Print an emotion using custom characters."""
         # Create custom characters for the emotion
         for i, bitmap in enumerate(emotion):
