@@ -1,5 +1,6 @@
 from RPLCD.i2c import CharLCD
 import time
+import threading
  
 EMOTION = list[tuple[int, int, int, int, int, int, int, int]]
 
@@ -35,6 +36,8 @@ class LCDController:
     def __init__(self):
         self._emotion_visible = False
         self._emotion_position = None
+        self._current_emotion = None
+        self._lcd_lock = threading.Lock()
         self._verify_lcd_device()
 
     def _verify_lcd_device(self):
@@ -76,16 +79,17 @@ class LCDController:
  
     def print_line(self, text, row=0, align="left", avoid_overlapping_emotion=True):
         """Print text on a full line with optional alignment."""
-        text = text[:16]
-        if align == "center":
-            text = text.center(16)
-        elif align == "right":
-            text = text.rjust(16)
-        else:
-            text = text.ljust(16)
-        text = self._apply_emotion_overlay(text, row, avoid_overlapping_emotion)
-        self._lcd.cursor_pos = (row, 0)
-        self._lcd.write_string(text)
+        with self._lcd_lock:
+            text = text[:16]
+            if align == "center":
+                text = text.center(16)
+            elif align == "right":
+                text = text.rjust(16)
+            else:
+                text = text.ljust(16)
+            text = self._apply_emotion_overlay(text, row, avoid_overlapping_emotion)
+            self._lcd.cursor_pos = (row, 0)
+            self._lcd.write_string(text)
  
     def scroll_text(self, text, row=1, delay=0.3, scroll_right_to_left=True, avoid_overlapping_emotion=True):
         """Scroll a long string across one row in either direction."""
@@ -96,40 +100,48 @@ class LCDController:
             indices = range(len(padded) - 16, -1, -1)
 
         for i in indices:
-            visible_text = padded[i:i + 16]
-            visible_text = self._apply_emotion_overlay(visible_text, row, avoid_overlapping_emotion)
-            self._lcd.cursor_pos = (row, 0)
-            self._lcd.write_string(visible_text)
+            with self._lcd_lock:
+                visible_text = padded[i:i + 16]
+                visible_text = self._apply_emotion_overlay(visible_text, row, avoid_overlapping_emotion)
+                self._lcd.cursor_pos = (row, 0)
+                self._lcd.write_string(visible_text)
             time.sleep(delay) 
 
     def print_emotion(self, emotion: EMOTION, horizontal_position=0):
-        # Clear the previous emotion if it exists
-        if self._emotion_visible and self._emotion_position is not None:
-            for i in range(6):
-                self._lcd.create_char(i, [0b00000] * 8)
-
         """Print an emotion using custom characters."""
-        # Create custom characters for the emotion
-        for i, bitmap in enumerate(emotion):
-            self._lcd.create_char(i, bitmap)
+        # Skip if this emotion is already displayed at this position
+        if (self._current_emotion == emotion and 
+            self._emotion_position == horizontal_position and 
+            self._emotion_visible):
+            return
 
-        # Print the emotion using the custom characters
-        self._lcd.cursor_pos = (0, horizontal_position)
-        self._lcd.write_string(chr(0) + chr(1) + chr(2))
-        self._lcd.cursor_pos = (1, horizontal_position)
-        self._lcd.write_string(chr(3) + chr(4) + chr(5))
+        with self._lcd_lock:
+            # Only clear and recreate chars if emotion changed
+            if self._current_emotion != emotion:
+                for i, bitmap in enumerate(emotion):
+                    self._lcd.create_char(i, bitmap)
+                time.sleep(0.05)  # Allow controller time to process
 
-        # Set variables
-        self._emotion_visible = True
-        self._emotion_position = horizontal_position
+            # Print the emotion using the custom characters
+            self._lcd.cursor_pos = (0, horizontal_position)
+            self._lcd.write_string(chr(0) + chr(1) + chr(2))
+            self._lcd.cursor_pos = (1, horizontal_position)
+            self._lcd.write_string(chr(3) + chr(4) + chr(5))
+
+            # Set variables
+            self._emotion_visible = True
+            self._emotion_position = horizontal_position
+            self._current_emotion = emotion
 
     def clear(self):
         """Clear the LCD display."""
-        self._lcd.clear()
+        with self._lcd_lock:
+            self._lcd.clear()
 
         # Reset emotion state
         self._emotion_visible = False
         self._emotion_position = None
+        self._current_emotion = None
 
     def screen_on(self):
         """Turn on the LCD backlight."""
@@ -139,12 +151,13 @@ class LCDController:
         """Turn off the LCD backlight."""
         self._lcd.backlight_enabled = False
 
-lcd_controller = LCDController()
-for _ in range(3):
-    lcd_controller.print_emotion(LCDController.SMILEY_FACE, horizontal_position=5)
-    time.sleep(1)
-    lcd_controller.print_emotion(LCDController.SAD_FACE, horizontal_position=10)
-    time.sleep(1)
-    lcd_controller.print_emotion(LCDController.ANGRY_FACE, horizontal_position=5)
-    time.sleep(1)
-lcd_controller.scroll_text("Hello, World!"*2, row=1, delay=0.25)
+if __name__ == "__main__":
+    lcd_controller = LCDController()
+    for _ in range(3):
+        lcd_controller.print_emotion(LCDController.SMILEY_FACE, horizontal_position=5)
+        time.sleep(1)
+        lcd_controller.print_emotion(LCDController.SAD_FACE, horizontal_position=10)
+        time.sleep(1)
+        lcd_controller.print_emotion(LCDController.ANGRY_FACE, horizontal_position=5)
+        time.sleep(1)
+    lcd_controller.scroll_text("Hello, World!"*2, row=1, delay=0.25)
