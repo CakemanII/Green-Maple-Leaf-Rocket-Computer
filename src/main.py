@@ -12,20 +12,32 @@ class RocketComputer:
         self._rocket_controller = RocketController()
 
         # Initialize Rocket GCS Communication and start communication
-        self._rocket_communication = RocketCommunication(self._rocket_controller)
+        # self._rocket_communication = RocketCommunication(self._rocket_controller)
         
         # Initialize sensor data management
         self._rocket_sensor_data = RocketSensorData(self._rocket_controller)
         self._rocket_sensor_data.start()
 
         # Add listeners for commands
-        self._add_command_listeners()
+        # self._add_command_listeners()
         
         # Start communication
-        self._rocket_communication.start_communication()
+        # self._rocket_communication.start_communication()
 
         # Start main control loop
-        self._main()
+        self._main_test()
+
+    def _main_test(self):
+        while True:
+            time.sleep(0.25)
+            print("Sensor Data: IMU, GPS, DPS")
+            gps_data = self._rocket_sensor_data.get_gps_data()
+            imu_data = self._rocket_sensor_data.get_imu_data()
+            dps_data = self._rocket_sensor_data.get_dps_data()
+            print(f"GPS: {gps_data}")
+            print(f"IMU: {imu_data}")
+            print(f"DPS: {dps_data}")
+            print("--------------------------------------------------" + "\n"*20)
 
 
     def _add_command_listeners(self):
