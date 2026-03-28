@@ -32,12 +32,6 @@ class RocketController:
 
         # Create LCD
         self._lcd = LCDController()
-        self._lcd.print_line("Initializing...", 0)
-        self._lcd.print_line("Please Wait...", 1)
-        time.sleep(2)
-        time.sleep(2)
-
-        return
 
         # Alert to not move the rocket computer during sensor initialization and calibration
         for _ in range(5):
@@ -47,21 +41,25 @@ class RocketController:
             time.sleep(0.25)
         self._lcd.print_line("IMU Calibrating", 0)
         self._lcd.print_line("Keep Still!!!", 1)
-
+        
         # Setup the IMU
+        time.sleep(0.25)
         self._bno = IMUSensorController(self._i2c)
         
         # Setup the GPS
+        time.sleep(0.25)
         self._lcd.print_line("GPS Initializing", 0)
         self._lcd.print_line("Please Wait...", 1)
         self._gps = GPSSensorController(self._i2c)
 
         # Setup the DPS
+        time.sleep(0.25)
         self._lcd.print_line("DPS Initializing", 0)
         self._lcd.print_line("Please Wait...", 1)
         self._dps = DPSSensorController(self._i2c)
 
         # Alert everything has been initialized and calibrated
+        time.sleep(0.25)
         self._lcd.print_line("All Sensors", 0)
         self._lcd.print_line("Calibrated!", 1)
         self._lcd.print_emotion(LCDController.SMILEY_FACE, 13)
