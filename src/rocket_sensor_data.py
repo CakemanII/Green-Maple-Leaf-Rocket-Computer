@@ -4,8 +4,9 @@ import time
 import threading
 
 class RocketSensorData:
-    def __init__(self, rocketController: RocketController):
+    def __init__(self, rocketController: RocketController, interval: float = 0.15):
         self._rocket_controller = rocketController
+        self._update_interval = interval
 
         # Initialize sensor data
         self._gps_data = None
@@ -32,19 +33,19 @@ class RocketSensorData:
         self._imu_data = (time.time(), data)
 
 
-    def _main(self, update_interval: float):
+    def _main(self):
         """
         Start a continuous loop to update the sensor data at a specified interval.
         """
         while True:
             self._update_sensor_data()
-            time.sleep(update_interval)
+            time.sleep(self._update_interval)
 
 
     def start(self):
         """
         Start the continuous sensor data update in a separate thread.
         """
-        update_thread = threading.Thread(target=self._main, args=(1.0,))
+        update_thread = threading.Thread(target=self._main)
         update_thread.daemon = True
         update_thread.start()
