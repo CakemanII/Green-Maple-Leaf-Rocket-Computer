@@ -109,18 +109,19 @@ class LCDController:
             except queue.Empty:
                 pass
 
-            # Handle live scrolling if active on any row
-            current_time = time.time()
-            # Render row 0 if active and timing is due
-            if self._live_scroll_active.get(0, False):
-                if current_time - self._live_scroll_last_frame.get(0, 0) >= self._live_scroll_delay.get(0, 0.3):
-                    self._do_live_scroll_frame(0)
-                    self._live_scroll_last_frame[0] = current_time
-            # Render row 1 if active and timing is due
-            if self._live_scroll_active.get(1, False):
-                if current_time - self._live_scroll_last_frame.get(1, 0) >= self._live_scroll_delay.get(1, 0.3):
-                    self._do_live_scroll_frame(1)
-                    self._live_scroll_last_frame[1] = current_time
+            # Handle live scrolling if active on any row (only if LCD is ready)
+            if self._lcd:
+                current_time = time.time()
+                # Render row 0 if active and timing is due
+                if self._live_scroll_active.get(0, False):
+                    if current_time - self._live_scroll_last_frame.get(0, 0) >= self._live_scroll_delay.get(0, 0.3):
+                        self._do_live_scroll_frame(0)
+                        self._live_scroll_last_frame[0] = current_time
+                # Render row 1 if active and timing is due
+                if self._live_scroll_active.get(1, False):
+                    if current_time - self._live_scroll_last_frame.get(1, 0) >= self._live_scroll_delay.get(1, 0.3):
+                        self._do_live_scroll_frame(1)
+                        self._live_scroll_last_frame[1] = current_time
 
             time.sleep(0.01)  # Small sleep to avoid busy waiting
 
@@ -176,14 +177,20 @@ class LCDController:
         self._live_scroll_direction[row] = scroll_right_to_left
         self._live_scroll_avoid_emotion[row] = avoid_overlapping_emotion
         
-        # Create padded or repeated text
+        # Create padded or repeated text - MUST be at least 32 chars for safe slicing
         if seamless_wrap and text:
-            # Repeat text to create seamless wrapping (at least 32 chars total)
-            repeat_count = max(2, math.ceil(32 / len(text)))
+            # Repeat text to create seamless wrapping
+            # Calculate how many times to repeat so total length is at least 64 chars (64-16=48 valid indices)
+            repeat_count = max(2, math.ceil(64 / len(text)))
             self._live_scroll_padded[row] = text * repeat_count
         else:
             # Original padding approach with spaces
+            # Guarantees at least 48 chars: 16 + text + 16 = at least 32 (if text is 0), typically much more
             self._live_scroll_padded[row] = " " * 16 + text + " " * 16
+        
+        # Ensure minimum 32 chars for safety
+        if len(self._live_scroll_padded[row]) < 32:
+            self._live_scroll_padded[row] = (self._live_scroll_padded[row] + " " * 32)[:32]
         
         # Start from the beginning
         if scroll_right_to_left:
@@ -191,30 +198,53 @@ class LCDController:
         else:
             self._live_scroll_index[row] = len(self._live_scroll_padded[row]) - 16
         
+        # Initialize frame timing to current time so first frame fires immediately
         self._live_scroll_last_frame[row] = time.time()
         self._live_scroll_active[row] = True
 
     def _do_live_scroll_frame(self, row):
         """Internal: Render one frame of live scrolling text for the specified row."""
+        # Safety checks
+        if not self._lcd:
+            return  # LCD not initialized yet
+        
+        if not self._live_scroll_padded.get(row, ""):
+            return  # No text to display
+        
+        padded_text = self._live_scroll_padded[row]
+        if len(padded_text) < 16:
+            return  # Padded text too short - shouldn't happen but safety check
+        
+        current_index = self._live_scroll_index[row]
+        
+        # Ensure index is within valid range
+        if current_index < 0:
+            current_index = 0
+        if current_index > len(padded_text) - 16:
+            current_index = 0
+        
         with self._lcd_lock:
-            if not self._live_scroll_padded.get(row, ""):
-                return
-
-            # Get the 16-char window
-            visible_text = self._live_scroll_padded[row][self._live_scroll_index[row]:self._live_scroll_index[row] + 16]
+            # Get the 16-char window, ensuring we never return < 16 chars
+            visible_text = padded_text[current_index:current_index + 16]
+            # CRITICAL: Pad to exactly 16 chars to prevent display corruption
+            visible_text = visible_text.ljust(16)
+            
+            # Apply emotion overlay (works safely with 16-char text)
             visible_text = self._apply_emotion_overlay(visible_text, row, self._live_scroll_avoid_emotion[row])
+            
+            # Write to LCD
             self._lcd.cursor_pos = (row, 0)
             self._lcd.write_string(visible_text)
 
-            # Update index for next frame
-            if self._live_scroll_direction[row]:  # right_to_left
-                self._live_scroll_index[row] += 1
-                if self._live_scroll_index[row] > len(self._live_scroll_padded[row]) - 16:
-                    self._live_scroll_index[row] = 0
-            else:  # left_to_right
-                self._live_scroll_index[row] -= 1
-                if self._live_scroll_index[row] < 0:
-                    self._live_scroll_index[row] = len(self._live_scroll_padded[row]) - 16
+        # Update index for next frame
+        if self._live_scroll_direction[row]:  # right_to_left
+            self._live_scroll_index[row] = current_index + 1
+            if self._live_scroll_index[row] > len(padded_text) - 16:
+                self._live_scroll_index[row] = 0
+        else:  # left_to_right
+            self._live_scroll_index[row] = current_index - 1
+            if self._live_scroll_index[row] < 0:
+                self._live_scroll_index[row] = len(padded_text) - 16
 
     def _do_print_emotion(self, emotion, horizontal_position):
         """Internal: Execute print_emotion command."""
