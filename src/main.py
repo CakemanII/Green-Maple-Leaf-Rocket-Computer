@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 import rocket_controller
 from rocket_gcs_communication import RocketCommunication
