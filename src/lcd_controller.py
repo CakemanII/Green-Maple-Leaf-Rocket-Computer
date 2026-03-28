@@ -1,6 +1,8 @@
 from RPLCD.i2c import CharLCD
 import time
  
+EMOTION = list[tuple[int, int, int, int, int, int, int, int]]
+
 class LCDController:
     # Custom character bitmaps for smiley face
     SMILEY_FACE = [
@@ -13,6 +15,8 @@ class LCDController:
    ]
 
     def __init__(self):
+        self._emotion_visible = False
+        self._emotion_position = None
         self._verify_lcd_device()
 
     def _verify_lcd_device(self):
@@ -34,8 +38,25 @@ class LCDController:
             except Exception as e:
                 print(f"LCD initialization failed: {e}. Retrying in 0.5 seconds...")
                 time.sleep(0.5)
+
+    def _apply_emotion_overlay(self, text, row, avoid_overlapping_emotion):
+        """Keep the emotion visible by restoring its glyphs on protected cells."""
+        if not (avoid_overlapping_emotion and self._emotion_visible and self._emotion_position is not None):
+            return text
+
+        if row not in (0, 1):
+            return text
+
+        chars = list(text)
+        base_char = 0 if row == 0 else 3
+        for offset in range(3):
+            col = self._emotion_position + offset
+            if 0 <= col < 16:
+                chars[col] = chr(base_char + offset)
+
+        return "".join(chars)
  
-    def print_line(self, text, row=0, align="left"):
+    def print_line(self, text, row=0, align="left", avoid_overlapping_emotion=True):
         """Print text on a full line with optional alignment."""
         text = text[:16]
         if align == "center":
@@ -44,10 +65,11 @@ class LCDController:
             text = text.rjust(16)
         else:
             text = text.ljust(16)
+        text = self._apply_emotion_overlay(text, row, avoid_overlapping_emotion)
         self._lcd.cursor_pos = (row, 0)
         self._lcd.write_string(text)
  
-    def scroll_text(self, text, row=1, delay=0.3, scroll_right_to_left=True):
+    def scroll_text(self, text, row=1, delay=0.3, scroll_right_to_left=True, avoid_overlapping_emotion=True):
         """Scroll a long string across one row in either direction."""
         padded = " " * 16 + text + " " * 16
         if scroll_right_to_left:
@@ -56,25 +78,35 @@ class LCDController:
             indices = range(len(padded) - 16, -1, -1)
 
         for i in indices:
+            visible_text = padded[i:i + 16]
+            visible_text = self._apply_emotion_overlay(visible_text, row, avoid_overlapping_emotion)
             self._lcd.cursor_pos = (row, 0)
-            self._lcd.write_string(padded[i:i + 16])
+            self._lcd.write_string(visible_text)
             time.sleep(delay) 
 
-    def print_smiley_face(self):
-        """Print a smiley face using custom characters."""
-        # Create custom characters for the smiley face
-        for i, bitmap in enumerate(LCDController.SMILEY_FACE):
+    def print_emotion(self, emotion: EMOTION, horizontal_position=0):
+        """Print an emotion using custom characters."""
+        # Create custom characters for the emotion
+        for i, bitmap in enumerate(emotion):
             self._lcd.create_char(i, bitmap)
 
-        # Print the smiley face using the custom characters
-        self._lcd.cursor_pos = (0, 0)
+        # Print the emotion using the custom characters
+        self._lcd.cursor_pos = (0, horizontal_position)
         self._lcd.write_string(chr(0) + chr(1) + chr(2))
-        self._lcd.cursor_pos = (1, 0)
+        self._lcd.cursor_pos = (1, horizontal_position)
         self._lcd.write_string(chr(3) + chr(4) + chr(5))
+
+        # Set variables
+        self._emotion_visible = True
+        self._emotion_position = horizontal_position
 
     def clear(self):
         """Clear the LCD display."""
         self._lcd.clear()
+
+        # Reset emotion state
+        self._emotion_visible = False
+        self._emotion_position = None
 
     def screen_on(self):
         """Turn on the LCD backlight."""
@@ -85,4 +117,4 @@ class LCDController:
         self._lcd.backlight_enabled = False
 
 lcd_controller = LCDController()
-lcd_controller.print_smiley_face()
+lcd_controller.print_emotion(LCDController.SMILEY_FACE, horizontal_position=5)
