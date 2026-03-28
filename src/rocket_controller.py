@@ -59,13 +59,14 @@ class RocketController:
         self._dps = DPSSensorController(self._i2c)
 
         # Alert everything has been initialized and calibrated
+        self._lcd.print_emotion(LCDController.SMILEY_FACE, 13)
         for _ in range(4):
             time.sleep(0.25)
-            self._lcd.print_emotion(LCDController.SMILEY_FACE, 13)
             self._lcd.print_line("All Sensors", 0)
             self._lcd.print_line("Calibrated!", 1)
             time.sleep(0.25)
             self._lcd.clear()
+        self._lcd.clear_emotion()
 
 
     def is_co2_breach_triggered(self) -> bool: return self._co2_breach_triggered
