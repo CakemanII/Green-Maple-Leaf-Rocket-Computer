@@ -70,4 +70,7 @@ class LCDController:
 
 lcd = LCDController()
 lcd.print_line("Hello, World!", align="center")
-time.sleep(3)
+time.sleep(1)
+lcd.scroll_text("Welcome to the Rocket Computer! "*5, delay=0.1)
+time.sleep(1)
+lcd.print_vertical("Rocket Computer", delay=0.5)
