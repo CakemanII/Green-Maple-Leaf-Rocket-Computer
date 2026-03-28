@@ -118,3 +118,4 @@ class LCDController:
 
 lcd_controller = LCDController()
 lcd_controller.print_emotion(LCDController.SMILEY_FACE, horizontal_position=5)
+lcd_controller.scroll_text("Hello, World!"*2, row=1, delay=0.5)
