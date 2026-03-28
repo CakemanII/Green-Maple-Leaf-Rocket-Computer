@@ -32,6 +32,11 @@ class RocketController:
 
         # Create LCD
         self._lcd = LCDController()
+        self._lcd.print_line("Initializing...", 0)
+        time.sleep(2)
+        time.sleep(2)
+
+        return
 
         # Alert to not move the rocket computer during sensor initialization and calibration
         for _ in range(5):
