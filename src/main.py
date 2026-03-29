@@ -33,20 +33,42 @@ class RocketComputer:
         while True:
             time.sleep(0.1)
             print("Sensor Data: IMU, GPS, DPS | " + str(datetime.now()))
-            gps_data = self._rocket_sensor_data.get_gps_data()
-            imu_data = self._rocket_sensor_data.get_imu_data()
-            dps_data = self._rocket_sensor_data.get_dps_data()
-            print(f"GPS: {gps_data}")
-            print(f"IMU: {imu_data}")
-            print(f"DPS: {dps_data}")
-            print("--------------------------------------------------" + "\n"*20)
 
-            dps_is_valid = "OP" if dps_data is not None else "ERR"
+            # IMU
+            imu_data = self._rocket_sensor_data.get_imu_data(),
+            if imu_data is not None:
+                imu_values = imu_data[1]
+                self._rocket_communication.send_data("imu.acc", (imu_data[0], imu_values["acceleration"]))
+                self._rocket_communication.send_data("imu.anv", (imu_data[0], imu_values["gyro"]))
+                self._rocket_communication.send_data("imu.mgn", (imu_data[0], imu_values["magnetometer"]))
+                self._rocket_communication.send_data("imu.grv", (imu_data[0], imu_values["gravity"]))
+                self._rocket_communication.send_data("imu.ori", (imu_data[0], imu_values["vector_orientation"]))
+                self._rocket_communication.send_data("imu.lac", (imu_data[0], imu_values["linear_acceleration"]))
+            
+            # DPS
+            dps_data = self._rocket_sensor_data.get_dps_data()
+            if dps_data is not None:
+                dps_values = dps_data[1]
+                self._rocket_communication.send_data("dps.prs", (dps_data[0], dps_values["pressure"]))
+                self._rocket_communication.send_data("dps.alt", (dps_data[0], dps_values["altitude"]))
+                self._rocket_communication.send_data("dps.tmp", (dps_data[0], dps_values["temperature"]))
+
+            # GPS
+            gps_data = self._rocket_sensor_data.get_gps_data()
+            if gps_data is not None:
+                gps_values = gps_data[1]
+                self._rocket_communication.send_data("gps.pos", (gps_data[0], (gps_values["latitude"], gps_values["longitude"])))
+                self._rocket_communication.send_data("gps.alt", (gps_data[0], gps_values["altitude"]))
+
+
+
             imu_is_valid = "OP" if imu_data is not None else "ERR"
+            dps_is_valid = "OP" if dps_data is not None else "ERR"
             gps_is_valid = "OP" if gps_data is not None else "ERR"
+            piezo_is_valid = "ON" if self._rocket_controller._piezo.is_playing_tone else "OFF"
             self._rocket_controller._lcd.set_live_scrolling_text(f"STATE: READY  CON: 50ms  RTMP: 25°C", 0)
             self._rocket_controller._lcd.set_live_scrolling_text(
-                f"DPS: {dps_is_valid}  IMU: {imu_is_valid}  GPS: {gps_is_valid}  CAM: OP  FAN: 0%  PIEZO: 0% ", 1, delay=0.22)
+                f"DPS: {dps_is_valid}  IMU: {imu_is_valid}  GPS: {gps_is_valid}  CAM: OP  FAN: 0%  PIEZO: {piezo_is_valid} ", 1, delay=0.22)
 
 
     def _add_command_listeners(self):
@@ -98,20 +120,6 @@ class RocketComputer:
             # Check if we should deploy the parachute
             self._detect_deploy_parachute()
             time.sleep(0.05)
-
-    def _send_continuous_telemetry_data(self):
-        while True:
-            # Get sensor data
-            imu_data = self._rocket_sensor_data.get_imu_data()
-            gps_data = self._rocket_sensor_data.get_gps_data()
-
-            # Send data to ground station
-            self._rocket_communication.send_data({
-                "imu": imu_data,
-                "gps": gps_data,
-            })
-
-            time.sleep(0.1)
 
     def _detect_deploy_parachute(self):
         """

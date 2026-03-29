@@ -81,23 +81,6 @@ class RocketController:
         pass
     # endregion
 
-    def set_led_active(self, state: Color | None):
-        """
-        Set the LED to be off or on.
-        """
-        # Turn off or on the LED
-        if state is None:
-            # Turn off the LED
-            # ...
-            pass
-        else:
-            # Turn on the LED with the specified color
-            # ...
-            pass
-
-        # Set the flag
-        self._led_is_active = state is not None
-
     def toggle_rocket_camera_state(self, state: bool):
         """
         Toggle the rocket camera state.

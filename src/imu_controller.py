@@ -1,8 +1,13 @@
+import math
+
 from adafruit_bno08x.i2c import BNO08X_I2C
 from adafruit_bno08x import (
     BNO_REPORT_ACCELEROMETER,
     BNO_REPORT_GYROSCOPE,
     BNO_REPORT_MAGNETOMETER,
+    BNO_REPORT_ROTATION_VECTOR,
+    BNO_REPORT_LINEAR_ACCELERATION,
+    BNO_REPORT_GRAVITY
 )
 from sensor_controller import SensorController
 
@@ -27,11 +32,15 @@ class IMUSensorController(SensorController):
                 self._imu.enable_feature(BNO_REPORT_ACCELEROMETER)
                 self._imu.enable_feature(BNO_REPORT_GYROSCOPE)
                 self._imu.enable_feature(BNO_REPORT_MAGNETOMETER)
+                self._imu.enable_feature(BNO_REPORT_ROTATION_VECTOR)
+                self._imu.enable_feature(BNO_REPORT_LINEAR_ACCELERATION)
 
                 # Verify sensor is responding by reading a value
                 _ = self._imu.acceleration
                 _ = self._imu.gyro
                 _ = self._imu.magnetic
+                _ = self._imu.quaternion
+                _ = self._imu.linear_acceleration
                 print("BNO08X IMU initialized successfully")
                 break
             except:
@@ -52,10 +61,15 @@ class IMUSensorController(SensorController):
             acceleration = self._imu.acceleration
             gyro = self._imu.gyro
             magnetometer = self._imu.magnetic
+            rot_vector = self._quaternion_to_euler(self._imu.quaternion)
+            gravity = self._imu.gravity
             return {
-                "acceleration": acceleration,
-                "gyro": gyro,
-                "magnetometer": magnetometer
+                "acceleration": {"x": acceleration[0], "y": acceleration[1], "z": acceleration[2]},
+                "gyro": {"x": gyro[0], "y": gyro[1], "z": gyro[2]},
+                "magnetometer": {"x": magnetometer[0], "y": magnetometer[1], "z": magnetometer[2]},
+                "vector_orientation": {"r": rot_vector[0], "p": rot_vector[1], "y": rot_vector[2]},
+                "linear_acceleration": {"x": self._imu.linear_acceleration[0], "y": self._imu.linear_acceleration[1], "z": self._imu.linear_acceleration[2]},
+                "gravity": {"x": gravity[0], "y": gravity[1], "z": gravity[2]}
             }
 
         except Exception as e:
@@ -105,3 +119,14 @@ class IMUSensorController(SensorController):
 
         print("IMU calibrated")
         
+
+    def _quaternion_to_euler(quaternion: tuple) -> tuple:
+        w, x, y, z = quaternion
+        # Roll (X-axis rotation)
+        roll = math.atan2(2*(w*x + y*z), 1 - 2*(x*x + y*y))
+        # Pitch (Y-axis rotation)
+        pitch = math.asin(2*(w*y - z*x))
+        # Yaw (Z-axis rotation)
+        yaw = math.atan2(2*(w*z + x*y), 1 - 2*(y*y + z*z))
+        # Convert radians to degrees
+        return math.degrees(roll), math.degrees(pitch), math.degrees(yaw)

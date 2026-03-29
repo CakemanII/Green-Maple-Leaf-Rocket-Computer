@@ -1,0 +1,54 @@
+{
+    "imu": {
+        "acc": {"x": "number", "y": "number", "z": "number" },
+        "anv": {"r": "number", "p": "number", "y": "number" },
+        "mgn": {"x": "number", "y": "number", "z": "number" },
+        "ori": {"r": "number", "p": "number", "y": "number" },
+        "grv": {"x": "number", "y": "number", "z": "number" },
+        "lac": {"x": "number", "y": "number", "z": "number" }
+    },
+
+    "gps": {
+        "pos": {"lat": "number", "lon": "number"},
+        "alt": "number",
+        "spd": "number",
+        "hdg": "number",
+        "sat": "number"
+    },
+
+    "dps": {
+        "prs": "number",
+        "alt": "number",
+        "tmp": "number"
+    },
+
+    "cam": {
+        "fps": "number",
+        "res": {"w": "number", "h": "number"},
+        "on": "boolean"
+    },
+
+    "rasp": {
+        "lat": "number",
+        "ram": "number",
+        "cpu": "number",
+        "dsk": "number",
+        "vlt": "number",
+        "pwr": "number",
+        "tmp": "number",
+        "upt": "number"
+    },
+
+    "states":
+    {
+        "lch": "boolean",
+        "apr": "boolean",
+        "par": "boolean",
+        "mas": "number"
+    },
+
+    "servos": {
+        "s1p": "number",
+        "s2p": "number"
+    }
+}

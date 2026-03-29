@@ -22,7 +22,7 @@ class GPSSensorController(SensorController):
             # Process GPGGA sentences (contain fix data)
             if line.startswith("$GPGGA"):
                 msg = pynmea2.parse(line)
-
+                print("entire:" + str(msg))
                 latitude = msg.latitude
                 longitude = msg.longitude
                 altitude = msg.altitude
