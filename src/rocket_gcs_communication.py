@@ -57,11 +57,11 @@ class RocketCommunication:
         # Verify RFM9x device is connected and wired connection
         self._verify_rfm9x_device()
 
-    def _verify_rfm9x_device(self):
+    def _verify_rfm9x_device(self, force_verify: bool = False):
         """
         Verify the RFM9x device is connected and wired connection.
         """
-        while self._is_active:
+        while self._is_active or force_verify:
             try:
                 # Define pins connected to the RFM9x
                 CS = digitalio.DigitalInOut(board.CE1)
@@ -167,6 +167,10 @@ class RocketCommunication:
         """
         if not self._is_active:
             print("⚠️  Cannot send data, communication is inactive.")
+            return
+        
+        if self._rfm9x is None:
+            print("❌ RFM9x not initialized, cannot send data.")
             return
         
         # Get current seconds
