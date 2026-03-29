@@ -24,7 +24,7 @@ class RocketComputer:
         self._add_command_listeners()
         
         # Start communication
-        self._rocket_communication.start_communication()
+        self._rocket_communication.set_active()
 
         # Start main control loop
         self._main_test()
