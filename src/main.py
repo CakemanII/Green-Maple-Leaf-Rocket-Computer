@@ -12,13 +12,15 @@ class RocketComputer:
     def __init__(self):
         # Initialize Rocket Controller
         self._rocket_controller = RocketController()
-
-        # Initialize Rocket GCS Communication and start communication
-        self._rocket_communication = RocketCommunication(self._rocket_controller)
         
         # Initialize sensor data management
         self._rocket_sensor_data = RocketSensorData(self._rocket_controller)
-        self._rocket_sensor_data.start()
+
+        self._rocket_controller._lcd.clear()
+        self._rocket_controller._lcd.print_line("Verifying RFM9X", 0)
+
+        # Initialize Rocket GCS Communication
+        self._rocket_communication = RocketCommunication()
 
         # Add listeners for commands
         self._add_command_listeners()
