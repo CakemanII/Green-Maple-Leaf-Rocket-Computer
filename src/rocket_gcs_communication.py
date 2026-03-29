@@ -80,8 +80,6 @@ class RocketCommunication:
         """
         Main loop to check for incoming data.
         """
-        self._verify_rfm9x_device()
-
         while True:
             # Delay
             time.sleep(0.1)
