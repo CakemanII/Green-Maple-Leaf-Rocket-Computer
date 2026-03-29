@@ -121,7 +121,7 @@ class IMUSensorController(SensorController):
         print("IMU calibrated")
         
 
-    def _quaternion_to_euler(quaternion: tuple) -> tuple:
+    def _quaternion_to_euler(self, quaternion: tuple) -> tuple:
         w, x, y, z = quaternion
         # Roll (X-axis rotation)
         roll = math.atan2(2*(w*x + y*z), 1 - 2*(x*x + y*y))
