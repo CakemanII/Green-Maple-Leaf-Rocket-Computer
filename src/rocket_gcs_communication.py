@@ -55,7 +55,7 @@ class RocketCommunication:
             print(f"✅ Using provided AES-{len(aes_key)*8} key")
 
         # Verify RFM9x device is connected and wired connection
-        self._verify_rfm9x_device()
+        self._verify_rfm9x_device(True)
 
     def _verify_rfm9x_device(self, force_verify: bool = False):
         """
