@@ -50,7 +50,7 @@ class RocketController:
         self._lcd.print_line("Keep Still!!!", 1)
         
         time.sleep(0.25)
-        self._bno = IMUSensorController(self._i2c)
+        self._imu = IMUSensorController(self._i2c)
         
         # Setup the GPS
         time.sleep(0.25)
@@ -102,5 +102,5 @@ class RocketController:
     # region Sensor Data Retrieval
     def get_dps_sensor_data(self) -> object | None: return self._dps.get_sensor_data()
     def get_gps_sensor_data(self) -> object | None: return self._gps.get_sensor_data()
-    def get_imu_sensor_data(self) -> object | None: return self._bno.get_sensor_data()
+    def get_imu_sensor_data(self) -> object | None: return self._imu.get_sensor_data()
     # endregion
