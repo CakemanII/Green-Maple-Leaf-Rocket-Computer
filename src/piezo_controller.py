@@ -23,30 +23,30 @@ class PresetMusicalTones:
     ]
 
     VERIFICATION_TONE: MusicalTone = [
-    # Work
-    (392.00, 0.8, 0.2), (466.16, 0.8, 0.2),
+        # Work
+        (392.00, 0.8, 0.2), (466.16, 0.8, 0.2),
 
-    # it
-    (392.00, 0.8, 0.2), (466.16, 0.8, 0.2),
+        # it
+        (392.00, 0.8, 0.2), (466.16, 0.8, 0.2),
 
-    # hard-
-    (466.16, 0.8, 0.2), (523.25, 0.8, 0.2),
+        # hard-
+        (466.16, 0.8, 0.2), (523.25, 0.8, 0.2),
 
-    # er
-    (392.00, 0.8, 0.2), (466.16, 0.8, 0.2),
+        # er
+        (392.00, 0.8, 0.2), (466.16, 0.8, 0.2),
 
-    # make
-    (349.23, 0.8, 0.2), (392.00, 0.8, 0.2),
+        # make
+        (349.23, 0.8, 0.2), (392.00, 0.8, 0.2),
 
-    # it
-    (392.00, 0.8, 0.2), (466.16, 0.8, 0.2),
+        # it
+        (392.00, 0.8, 0.2), (466.16, 0.8, 0.2),
 
-    # bet-
-    (466.16, 0.8, 0.2), (523.25, 0.8, 0.2),
+        # bet-
+        (466.16, 0.8, 0.2), (523.25, 0.8, 0.2),
 
-    # ter
-    (392.00, 0.8, 0.2), (466.16, 0.8, 0.2),
-]
+        # ter
+        (392.00, 0.8, 0.2), (466.16, 0.8, 0.2),
+    ]
 
 class PiezoController:
     ITERATION_DELAY: float = 0.1
@@ -102,9 +102,10 @@ class PiezoController:
 
     def _do_play_tone(self, tone: MusicalTone):
         for frequency, volume, duration in tone:
+            current_time = time.time()
             if frequency == 0 or volume == 0:
                 self.stop_buzzer()
             else:
                 self.set_buzzer(frequency, volume)
-            time.sleep(duration)
+            time.sleep(max(0, duration - (time.time() - current_time)))  # Adjust sleep time to account for processing delay
         self.stop_buzzer()
