@@ -36,7 +36,7 @@ class RocketComputer:
 
             # IMU
             imu_data = self._rocket_sensor_data.get_imu_data()
-            if imu_data is not None:
+            if imu_data is not None and imu_data[1] is not None:
                 imu_values = imu_data[1]
                 self._rocket_communication.send_data("imu.acc", (imu_data[0], imu_values["acceleration"]))
                 self._rocket_communication.send_data("imu.anv", (imu_data[0], imu_values["gyro"]))
@@ -47,7 +47,7 @@ class RocketComputer:
             
             # DPS
             dps_data = self._rocket_sensor_data.get_dps_data()
-            if dps_data is not None:
+            if dps_data is not None and dps_data[1] is not None:
                 dps_values = dps_data[1]
                 self._rocket_communication.send_data("dps.prs", (dps_data[0], dps_values["pressure"]))
                 self._rocket_communication.send_data("dps.alt", (dps_data[0], dps_values["altitude"]))
@@ -55,16 +55,14 @@ class RocketComputer:
 
             # GPS
             gps_data = self._rocket_sensor_data.get_gps_data()
-            if gps_data is not None:
+            if gps_data is not None and gps_data[1] is not None:
                 gps_values = gps_data[1]
                 self._rocket_communication.send_data("gps.pos", (gps_data[0], (gps_values["latitude"], gps_values["longitude"])))
                 self._rocket_communication.send_data("gps.alt", (gps_data[0], gps_values["altitude"]))
 
-
-
-            imu_is_valid = "OP" if imu_data is not None else "ERR"
-            dps_is_valid = "OP" if dps_data is not None else "ERR"
-            gps_is_valid = "OP" if gps_data is not None else "ERR"
+            imu_is_valid = "OP" if imu_data is not None and imu_data[1] is not None else "ERR"
+            dps_is_valid = "OP" if dps_data is not None and dps_data[1] is not None else "ERR"
+            gps_is_valid = "OP" if gps_data is not None and gps_data[1] is not None else "ERR"
             piezo_is_valid = "ON" if self._rocket_controller._piezo.is_playing_tone else "OFF"
             self._rocket_controller._lcd.set_live_scrolling_text(f"STATE: READY  CON: 50ms  RTMP: 25°C", 0)
             self._rocket_controller._lcd.set_live_scrolling_text(

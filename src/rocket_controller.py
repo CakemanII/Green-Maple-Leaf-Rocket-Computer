@@ -7,11 +7,13 @@ import gpiozero
 import time
 from datetime import datetime
 
+from raspi_controller import RaspiController
 from imu_controller import IMUSensorController
 from dps_controller import DPSSensorController
 from gps_controller import GPSSensorController
 from lcd_controller import LCDController
-from piezo_controller import PiezoController, MusicalTone, PresetMusicalTones
+from piezo_controller import PiezoController, PresetMusicalTones
+
 
 Color = tuple[int, int, int]
 
@@ -29,12 +31,15 @@ class RocketController:
         # Give sensors time to power up and stabilize
         time.sleep(1.5)
 
+        # Create Raspi Controller
+        self._raspi_controller = RaspiController()
+
         # Create LCD
         self._piezo = PiezoController()
         self._lcd = LCDController()
 
         # Blink the LCD backlight a few times to indicate startup
-        for _ in range(12):
+        for _ in range(1):
             self._lcd.screen_off()
             time.sleep(0.15)
             self._lcd.screen_on()
@@ -43,7 +48,7 @@ class RocketController:
         # Play the piezo buzzer to indicate startup
         self._lcd.print_line("Playing Piezo", 0)
         self._lcd.print_line("You should hear it!", 1)
-        self._piezo.play_tone(PresetMusicalTones.VERIFICATION_TONE, threaded=False)
+        #self._piezo.play_tone(PresetMusicalTones.VERIFICATION_TONE, threaded=False)
 
         # Setup the IMU
         self._lcd.print_line("IMU Calibrating", 0)

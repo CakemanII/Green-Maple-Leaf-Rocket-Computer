@@ -45,6 +45,13 @@ class RocketSensorData:
             self._imu_data = (time.time(), self._rocket_controller.get_imu_sensor_data())
             time.sleep(self._update_interval)
 
+    def _update_raspi_computer(self):
+        """
+        Start a continuous loop to update the Raspberry Pi computer stats at a specified interval.
+        """
+        while True:
+            self._raspi_computer_data = (time.time(), self._rocket_controller.get_raspi_stats())
+            time.sleep(self._update_interval)
 
     def start(self):
         """
