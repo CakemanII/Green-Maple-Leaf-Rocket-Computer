@@ -49,7 +49,7 @@ class PresetMusicalTones:
     ]
 
 class PiezoController:
-    ITERATION_DELAY: float = 0.1
+    ITERATION_DELAY: float = 0.01
     PIEZO_PIN = 22
 
     def __init__(self):
