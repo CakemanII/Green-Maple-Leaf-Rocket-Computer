@@ -43,6 +43,7 @@ class RocketSensorData:
         """
         while True:
             self._imu_data = (time.time(), self._rocket_controller.get_imu_sensor_data())
+            print("Updated IMU Data: " + str(self._imu_data))
             time.sleep(self._update_interval)
 
 

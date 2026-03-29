@@ -37,7 +37,6 @@ class RocketComputer:
             # IMU
             imu_data = self._rocket_sensor_data.get_imu_data(),
             if imu_data is not None:
-                print("IMU Data: " + str(imu_data))
                 imu_values = imu_data[1]
                 self._rocket_communication.send_data("imu.acc", (imu_data[0], imu_values["acceleration"]))
                 self._rocket_communication.send_data("imu.anv", (imu_data[0], imu_values["gyro"]))
