@@ -14,17 +14,17 @@ class RocketComputer:
         self._rocket_controller = RocketController()
 
         # Initialize Rocket GCS Communication and start communication
-        # self._rocket_communication = RocketCommunication(self._rocket_controller)
+        self._rocket_communication = RocketCommunication(self._rocket_controller)
         
         # Initialize sensor data management
         self._rocket_sensor_data = RocketSensorData(self._rocket_controller)
         self._rocket_sensor_data.start()
 
         # Add listeners for commands
-        # self._add_command_listeners()
+        self._add_command_listeners()
         
         # Start communication
-        # self._rocket_communication.start_communication()
+        self._rocket_communication.start_communication()
 
         # Start main control loop
         self._main_test()
