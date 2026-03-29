@@ -23,55 +23,35 @@ class PresetMusicalTones:
     ]
 
     VERIFICATION_TONE: MusicalTone = [
-        # -- Bar 1 --
-        (415, 85, 0.15),  # G#4
-        (415, 85, 0.15),  # G#4
-        (415, 85, 0.15),  # G#4
-        (415, 85, 0.15),  # G#4
-        (466, 85, 0.15),  # A#4
-        (466, 85, 0.15),  # A#4
-        (466, 85, 0.15),  # A#4
-        (466, 85, 0.15),  # A#4
+        # Phrase 1
+        (392.00, 0.8, 0.4),  # G
+        (392.00, 0.8, 0.4),  # G
+        (466.16, 0.8, 0.4),  # Bb
+        (392.00, 0.8, 0.4),  # G
+        (349.23, 0.8, 0.4),  # F
+        (392.00, 0.8, 0.4),  # G
 
-        # -- Bar 2 --
-        (311, 85, 0.15),  # D#4
-        (370, 85, 0.15),  # F#4
-        (554, 85, 0.15),  # C#5
-        (466, 85, 0.15),  # A#4
-        (415, 85, 0.15),  # G#4
-        (466, 85, 0.15),  # A#4
-        (466, 85, 0.15),  # A#4
-        (415, 85, 0.15),  # G#4
+        # Phrase 2
+        (392.00, 0.8, 0.4),
+        (392.00, 0.8, 0.4),
+        (466.16, 0.8, 0.4),
+        (392.00, 0.8, 0.4),
+        (349.23, 0.8, 0.4),
+        (392.00, 0.8, 0.4),
 
-        # -- Bar 3 --
-        (370, 85, 0.15),  # F#4
-        (554, 85, 0.15),  # C#5
-        (466, 85, 0.15),  # A#4
-        (294, 85, 0.15),  # D4
-        (554, 85, 0.15),  # C#5
-        (440, 85, 0.15),  # A4
-        (415, 85, 0.15),  # G#4
-        (415, 85, 0.15),  # G#4
+        # Phrase 3
+        (466.16, 0.8, 0.4),
+        (466.16, 0.8, 0.4),
+        (523.25, 0.8, 0.4),
+        (466.16, 0.8, 0.4),
+        (392.00, 0.8, 0.4),
 
-        # -- Bar 4 --
-        (370, 85, 0.15),  # F#4
-        (415, 85, 0.15),  # G#4
-        (370, 85, 0.15),  # F#4
-        (415, 85, 0.15),  # G#4
-        (370, 85, 0.15),  # F#4
-        (415, 85, 0.15),  # G#4
-        (370, 85, 0.15),  # F#4
-        (415, 85, 0.15),  # G#4
-
-        # -- Bar 5 (resolve) --
-        (415, 85, 0.15),  # G#4
-        (415, 85, 0.15),  # G#4
-        (294, 85, 0.15),  # D4
-        (554, 85, 0.15),  # C#5
-        (415, 85, 0.15),  # G#4
-        (415, 85, 0.15),  # G#4
-        (554, 85, 0.15),  # C#5
-        (466, 90, 0.30),  # A#4 held
+        # Phrase 4
+        (466.16, 0.8, 0.4),
+        (466.16, 0.8, 0.4),
+        (523.25, 0.8, 0.4),
+        (466.16, 0.8, 0.4),
+        (392.00, 0.8, 0.4),
     ]
 
 class PiezoController:
@@ -86,6 +66,7 @@ class PiezoController:
 
         self._frequency = None
         self._volume = None
+        self.is_playing_tone = False
 
         # Start the main loop in a separate thread
         self._main_thread = threading.Thread(target=self._main)
@@ -103,6 +84,11 @@ class PiezoController:
                 self._pwm.ChangeDutyCycle(self._volume / 2.0)  # Set volume (duty cycle)
             else:
                 self._pwm.ChangeDutyCycle(0)  # Turn off the buzzer if volume is not set
+            
+            if self._frequency is not None and self._volume is not None:
+                self.is_playing_tone = True
+            else:
+                self.is_playing_tone = False
 
             time.sleep(self.ITERATION_DELAY)
 
@@ -113,7 +99,6 @@ class PiezoController:
     def stop_buzzer(self):
         self._frequency = None
         self._volume = None
-        self._pwm.ChangeDutyCycle(0)  # Turn off the buzzer
 
     def play_tone(self, tone: MusicalTone, threaded: bool = True):
         if threaded:
@@ -123,7 +108,7 @@ class PiezoController:
 
     def _do_play_tone(self, tone: MusicalTone):
         for frequency, volume, duration in tone:
-            if frequency == 0:
+            if frequency == 0 or volume == 0:
                 self.stop_buzzer()
             else:
                 self.set_buzzer(frequency, volume)
