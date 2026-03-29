@@ -42,6 +42,9 @@ class RocketCommunication:
             self._aes_key = aes_key
             print(f"✅ Using provided AES-{len(aes_key)*8} key")
 
+        # Verify RFM9x device is connected and wired connection
+        self._verify_rfm9x_device()
+
     # region Communication Management
     def start_communication(self):
         """
@@ -70,9 +73,7 @@ class RocketCommunication:
                 break
             except:
                 print("❌ RFM9x not found, retrying...")
-
-            # Delay
-            time.sleep(RocketCommunication.SENSOR_VERIFY_ATTEMPT_DELAY)
+                time.sleep(RocketCommunication.SENSOR_VERIFY_ATTEMPT_DELAY)
     # endregion
 
     def _main(self):
