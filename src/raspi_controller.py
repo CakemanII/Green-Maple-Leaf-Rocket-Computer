@@ -49,7 +49,6 @@ class RaspiController:
             "voltage": self._get_voltage(),
             "throttled": self._get_throttled(),
             "uptime": self._get_uptime(),
-            "ram_used_mb": self._get_ram_usage()[0],
             "ram_percent": self._get_ram_usage()[1],
             "cpu_usage_percent": self._get_cpu_usage(),
             "disk_usage_percent": self._get_disk_usage()

@@ -19,6 +19,7 @@ class RocketSensorData:
     def get_gps_data(self) -> object: return self._gps_data
     def get_dps_data(self) -> object: return self._dps_data
     def get_imu_data(self) -> object: return self._imu_data
+    def get_raspi_stats(self) -> object: return self._raspi_computer_data
     # endregion
 
     def _update_dps(self):
@@ -66,5 +67,9 @@ class RocketSensorData:
         update_thread.start()
 
         update_thread = threading.Thread(target=self._update_imu)
+        update_thread.daemon = True
+        update_thread.start()
+
+        update_thread = threading.Thread(target=self._update_raspi_computer)
         update_thread.daemon = True
         update_thread.start()
