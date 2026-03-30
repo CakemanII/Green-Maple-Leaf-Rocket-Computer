@@ -10,18 +10,23 @@ import time
 import os
 import zlib
 import lzma
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import padding
-
-from task_queue import Queue
+import json
+try:
+    import msgpack
+    HAS_MSGPACK = True
+except ImportError:
+    HAS_MSGPACK = False
 
 class RadioDataObject(TypedDict):
     l: str # label
     s: float # timestamp in seconds
     d: object # data payload
 
-import json
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import padding
+
+from task_queue import Queue
 
 class RocketCommunication:
     RECEIVE_LISTENER_INTERVAL = 1
@@ -208,6 +213,24 @@ class RocketCommunication:
         # Backward compatibility for old packets without marker
         return payload
 
+    def _serialize_data(self, data_obj: dict) -> bytes:
+        """Serialize to binary (MessagePack) or compact JSON. MessagePack is ~40% smaller."""
+        if HAS_MSGPACK:
+            return msgpack.packb(data_obj, use_bin_type=True)
+        else:
+            return json.dumps(data_obj, separators=(",", ":")).encode("utf-8")
+
+    def _deserialize_data(self, data_bytes: bytes) -> dict:
+        """Deserialize from binary (MessagePack) or JSON."""
+        if HAS_MSGPACK:
+            try:
+                return msgpack.unpackb(data_bytes, raw=False)
+            except Exception:
+                # Fallback to JSON if MessagePack fails
+                return json.loads(data_bytes.decode("utf-8"))
+        else:
+            return json.loads(data_bytes.decode("utf-8"))
+
     def _send_data(self, data_tuple: tuple[str, object]):
         """
         Send data via RFM9x.
@@ -232,9 +255,9 @@ class RocketCommunication:
             "d": data
         }
 
-        # Convert to compact JSON bytes
+        # Convert to binary (MessagePack ~40% smaller than JSON, then compress)
         current_time = time.time()
-        byte_data = json.dumps(data_packet, separators=(",", ":")).encode("utf-8")
+        byte_data = self._serialize_data(data_packet)
 
         # Lossless adaptive compression for maximum size reduction
         compressed_data = self._compress_payload(byte_data)
@@ -244,9 +267,9 @@ class RocketCommunication:
 
         # Send via RFM9x
         self._rfm9x.send(encrypted_data)
-        time_speont = time.time() - current_time
+        time_spent = time.time() - current_time
         byte_size = len(encrypted_data)
-        print(f"📡 Sent data with label '{label}' (encryption + transmission time): {time_speont:.3f} seconds with a size of {byte_size} bytes")
+        print(f"📡 Sent data with label '{label}' (time): {time_spent:.3f}s | Size: {byte_size} bytes")
 
     # region Latency Test
     def latency_test_loop(self):
@@ -299,9 +322,8 @@ class RocketCommunication:
             # Decompress payload if compressed
             decoded_bytes = self._decompress_payload(decrypted_bytes)
             
-            # Convert bytes back to object DO NOT USE EVAL!!!!!!!!
-            data_str = decoded_bytes.decode("utf-8")
-            data_obj: RadioDataObject = json.loads(data_str)
+            # Deserialize from binary (MessagePack) or JSON
+            data_obj: RadioDataObject = self._deserialize_data(decoded_bytes)
 
             # Set the latency
             self._set_latency_from_data(data_obj)
