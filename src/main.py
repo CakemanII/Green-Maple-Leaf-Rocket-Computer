@@ -54,13 +54,17 @@ class RocketComputer:
                 telemetry_objects.append({"label": "imu.acc", "timestamp": current_timestamp, "data": imu_values["acceleration"]})
                 telemetry_objects.append({"label": "imu.anv", "timestamp": current_timestamp, "data": imu_values["gyro"]})
                 telemetry_objects.append({"label": "imu.mgn", "timestamp": current_timestamp, "data": imu_values["magnetometer"]})
+
+                # Send entire batch as single compressed transmission
+                if telemetry_objects:
+                    self._rocket_communication.send_data(("d1", telemetry_objects))
+
                 telemetry_objects.append({"label": "imu.grv", "timestamp": current_timestamp, "data": imu_values["gravity"]})
                 telemetry_objects.append({"label": "imu.ori", "timestamp": current_timestamp, "data": imu_values["vector_orientation"]})
                 telemetry_objects.append({"label": "imu.lac", "timestamp": current_timestamp, "data": imu_values["linear_acceleration"]})
 
-            # Send entire batch as single compressed transmission
-            if telemetry_objects:
-                self._rocket_communication.send_data(("d1", telemetry_objects))
+                if telemetry_objects:
+                    self._rocket_communication.send_data(("d2", telemetry_objects))
 
             # LCD Status Display
             dps_data = None
