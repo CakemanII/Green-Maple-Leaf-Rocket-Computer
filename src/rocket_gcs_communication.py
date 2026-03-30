@@ -203,11 +203,8 @@ class RocketCommunication:
         # Get current seconds
         current_time = time.time()
         
-        # Compress data (returns hex string)
-        compressed_hex = DataCompression.compress_data(datas, self._telemetry_data_transfer_types)
-        
-        # Convert hex string back to bytes
-        compressed_bytes = bytes.fromhex(compressed_hex)
+        # Compress data to raw bytes.
+        compressed_bytes = DataCompression.compress_data(datas, self._telemetry_data_transfer_types)
         
         # Apply AES encryption
         final_data = self._encrypt_aes(compressed_bytes)

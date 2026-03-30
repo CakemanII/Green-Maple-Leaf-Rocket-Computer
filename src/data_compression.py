@@ -81,7 +81,7 @@ class DataCompression:
             return json.loads(data_bytes.decode("utf-8"))
 
     @staticmethod 
-    def compress_data(datas: list[TelemetryObject], telemetry_data_transfer_types: TelemetryDataTransferTypes) -> str:
+    def compress_data(datas: list[TelemetryObject], telemetry_data_transfer_types: TelemetryDataTransferTypes) -> bytes:
         # Convert and compress each individual label, and data object. (TELEOBJET -> LABEL BY CODE OBJET)
         compressed_data = []
 
@@ -97,10 +97,12 @@ class DataCompression:
             elif all_same_timestamp == True and data["timestamp"] != first_timestamp:
                 all_same_timestamp = False
 
-            # Get the data value
-            data_value = data["data"] if not isinstance(data["data"], list) else [float(val) if isinstance(val, bool) else val for val in data["data"]]
-            
-            # Append the compressed label, relative timestamp, and data value to the compressed data list
+            # Normalize data to a list payload and append timestamp as the last value.
+            if isinstance(data["data"], list):
+                data_value = [float(val) if isinstance(val, bool) else val for val in data["data"]]
+            else:
+                data_value = [float(data["data"]) if isinstance(data["data"], bool) else data["data"]]
+
             compressed_data.append((compressed_label, data_value + [data["timestamp"]]))
 
         data_with_sent_timestamp = (time.time(), compressed_data)
@@ -114,8 +116,7 @@ class DataCompression:
         fully_compressed_data = DataCompression._compress_payload(byte_data)
         print("Byte size after compression: " + fully_compressed_data.__sizeof__().__str__())
 
-        # Return the compressed data as a string for transmission (e.g., via RFM9x)
-        return str(fully_compressed_data)
+        return fully_compressed_data
 
     @staticmethod
     def _get_code_from_label(label: str, telemetry_data_transfer_types: TelemetryDataTransferTypes) -> str:
