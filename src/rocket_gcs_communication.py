@@ -20,7 +20,7 @@ class RadioDataObject(TypedDict):
 import json
 
 class RocketCommunication:
-    RECEIVE_LISTENER_INTERVAL = 0.05
+    RECEIVE_LISTENER_INTERVAL = 1
     SENSOR_VERIFY_ATTEMPT_DELAY = 0.2
     LATENCY_TEST_SEND_INTERVAL = 0.25
 
