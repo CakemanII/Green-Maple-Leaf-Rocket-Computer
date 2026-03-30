@@ -184,16 +184,17 @@ class RocketCommunication:
         }
 
         # Convert to bytes
+        current_time = time.time()
         byte_data = str(data_packet).encode("utf-8")
         
         # Encrypt with AES
         encrypted_data = self._encrypt_aes(byte_data)
+        byte_size = len(encrypted_data)
 
         # Send via RFM9x
-        current_time = time.time()
         self._rfm9x.send(encrypted_data)
         time_speont = time.time() - current_time
-        print(f"📡 Sent data with label '{label}' (encryption + transmission time): {time_speont:.3f} seconds")
+        print(f"📡 Sent data with label '{label}' (encryption + transmission time): {time_speont:.3f} seconds with a size of {byte_size} bytes")
 
     # region Latency Test
     def latency_test_loop(self):
