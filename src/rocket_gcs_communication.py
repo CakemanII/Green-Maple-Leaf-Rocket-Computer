@@ -8,6 +8,8 @@ import threading
 
 import time
 import os
+import zlib
+import lzma
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
@@ -28,6 +30,11 @@ class RocketCommunication:
 
     LATENCY_IN_LABEL = "gcsp" # Ground station to Rocket
     LATENCY_OUT_LABEL = "rokp" # Rocket to Ground station response
+
+    # Compression markers (first byte in payload)
+    COMPRESS_NONE = b"N"
+    COMPRESS_ZLIB = b"Z"
+    COMPRESS_LZMA = b"L"
 
     def __init__(self, radio_freq_mhz: float = 915.0, aes_key: bytes = None):
         # Initialize RocketCommunication with RocketController and radio frequency
@@ -169,6 +176,38 @@ class RocketCommunication:
     def send_data(self, label: str, data: object):
         self._send_queue.add_to_queue((label, data))
 
+    def _compress_payload(self, raw_bytes: bytes) -> bytes:
+        """Lossless adaptive compression: choose the smallest payload."""
+        zlib_bytes = zlib.compress(raw_bytes, level=9)
+        lzma_bytes = lzma.compress(raw_bytes, preset=(9 | lzma.PRESET_EXTREME))
+
+        candidates = [
+            (RocketCommunication.COMPRESS_NONE, raw_bytes),
+            (RocketCommunication.COMPRESS_ZLIB, zlib_bytes),
+            (RocketCommunication.COMPRESS_LZMA, lzma_bytes),
+        ]
+
+        marker, compressed = min(candidates, key=lambda pair: len(pair[1]))
+        return marker + compressed
+
+    def _decompress_payload(self, payload: bytes) -> bytes:
+        """Reverse adaptive compression based on the leading marker byte."""
+        if not payload:
+            raise ValueError("Empty payload")
+
+        marker = payload[:1]
+        data = payload[1:]
+
+        if marker == RocketCommunication.COMPRESS_NONE:
+            return data
+        if marker == RocketCommunication.COMPRESS_ZLIB:
+            return zlib.decompress(data)
+        if marker == RocketCommunication.COMPRESS_LZMA:
+            return lzma.decompress(data)
+
+        # Backward compatibility for old packets without marker
+        return payload
+
     def _send_data(self, data_tuple: tuple[str, object]):
         """
         Send data via RFM9x.
@@ -193,12 +232,15 @@ class RocketCommunication:
             "d": data
         }
 
-        # Convert to bytes
+        # Convert to compact JSON bytes
         current_time = time.time()
-        byte_data = str(data_packet).encode("utf-8")
+        byte_data = json.dumps(data_packet, separators=(",", ":")).encode("utf-8")
+
+        # Lossless adaptive compression for maximum size reduction
+        compressed_data = self._compress_payload(byte_data)
         
         # Encrypt with AES
-        encrypted_data = byte_data # self._encrypt_aes(byte_data)
+        encrypted_data = compressed_data # self._encrypt_aes(compressed_data)
 
         # Send via RFM9x
         self._rfm9x.send(encrypted_data)
@@ -248,11 +290,17 @@ class RocketCommunication:
         Send to appropriate listeners.
         """
         try:
-            # Decrypt packet
-            decrypted_bytes = self._decrypt_aes(packet)
+            # Decrypt packet when encryption is enabled; fallback to raw packet otherwise.
+            try:
+                decrypted_bytes = self._decrypt_aes(packet)
+            except Exception:
+                decrypted_bytes = packet
+
+            # Decompress payload if compressed
+            decoded_bytes = self._decompress_payload(decrypted_bytes)
             
             # Convert bytes back to object DO NOT USE EVAL!!!!!!!!
-            data_str = decrypted_bytes.decode("utf-8")
+            data_str = decoded_bytes.decode("utf-8")
             data_obj: RadioDataObject = json.loads(data_str)
 
             # Set the latency
