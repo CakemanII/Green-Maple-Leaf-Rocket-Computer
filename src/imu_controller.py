@@ -66,12 +66,12 @@ class IMUSensorController(SensorController):
             gravity = self._imu.gravity
             linear_acceleration = self._imu.linear_acceleration
             return {
-                "acceleration": {"x": acceleration[0], "y": acceleration[1], "z": acceleration[2]},
-                "gyro": {"x": gyro[0], "y": gyro[1], "z": gyro[2]},
-                "magnetometer": {"x": magnetometer[0], "y": magnetometer[1], "z": magnetometer[2]},
-                "vector_orientation": {"r": rot_vector[0], "p": rot_vector[1], "y": rot_vector[2]},
-                "linear_acceleration": {"x": linear_acceleration[0], "y": linear_acceleration[1], "z": linear_acceleration[2]},
-                "gravity": {"x": gravity[0], "y": gravity[1], "z": gravity[2]}
+                "acceleration": list(acceleration),
+                "gyro": list(gyro),
+                "magnetometer": list(magnetometer),
+                "vector_orientation": list(rot_vector),
+                "linear_acceleration": list(linear_acceleration),
+                "gravity": list(gravity)
             }
 
         except Exception as e:
