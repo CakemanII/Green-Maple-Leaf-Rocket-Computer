@@ -101,7 +101,7 @@ class DataCompression:
             data_value = data["data"] if not isinstance(data["data"], list) else [float(val) if isinstance(val, bool) else val for val in data["data"]]
             
             # Append the compressed label, relative timestamp, and data value to the compressed data list
-            compressed_data.append((compressed_label, data_value + data["timestamp"]))
+            compressed_data.append((compressed_label, data_value + [data["timestamp"]]))
 
         data_with_sent_timestamp = (time.time(), compressed_data)
 
