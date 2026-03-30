@@ -42,11 +42,11 @@ class RocketComputer:
             if imu_data is not None and imu_data[1] is not None:
                 imu_values = imu_data[1]
                 self._rocket_communication.send_data("imu.acc", (imu_data[0], imu_values["acceleration"]))
-                # self._rocket_communication.send_data("imu.anv", (imu_data[0], imu_values["gyro"]))
-                # self._rocket_communication.send_data("imu.mgn", (imu_data[0], imu_values["magnetometer"]))
-                # self._rocket_communication.send_data("imu.grv", (imu_data[0], imu_values["gravity"]))
-                # self._rocket_communication.send_data("imu.ori", (imu_data[0], imu_values["vector_orientation"]))
-                # self._rocket_communication.send_data("imu.lac", (imu_data[0], imu_values["linear_acceleration"]))
+                self._rocket_communication.send_data("imu.anv", (imu_data[0], imu_values["gyro"]))
+                self._rocket_communication.send_data("imu.mgn", (imu_data[0], imu_values["magnetometer"]))
+                self._rocket_communication.send_data("imu.grv", (imu_data[0], imu_values["gravity"]))
+                self._rocket_communication.send_data("imu.ori", (imu_data[0], imu_values["vector_orientation"]))
+                self._rocket_communication.send_data("imu.lac", (imu_data[0], imu_values["linear_acceleration"]))
             
             # DPS
             dps_data = self._rocket_sensor_data.get_dps_data()
