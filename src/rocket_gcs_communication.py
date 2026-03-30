@@ -12,6 +12,8 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
 
+from task_queue import Queue
+
 class RadioDataObject(TypedDict):
     l: str # label
     s: float # timestamp in seconds
@@ -53,6 +55,9 @@ class RocketCommunication:
                 raise ValueError("AES key must be 16, 24, or 32 bytes")
             self._aes_key = aes_key
             print(f"✅ Using provided AES-{len(aes_key)*8} key")
+
+        # Create the send queue
+        self._send_queue = Queue(operations_per_second=20, queue_processor=self._send_data, queue_name="Rocket Send Queue")
 
         # Verify RFM9x device is connected and wired connection
         self._verify_rfm9x_device(True)
@@ -161,10 +166,10 @@ class RocketCommunication:
         return data
     # endregion
 
-    def _send_data(self, label: str, data: object):
-        pass
-
     def send_data(self, label: str, data: object):
+        self._send_queue.add_to_queue((label, data))
+
+    def _send_data(self, data_tuple: tuple[str, object]):
         """
         Send data via RFM9x.
         """
@@ -175,6 +180,8 @@ class RocketCommunication:
         if self._rfm9x is None:
             print("❌ RFM9x not initialized, cannot send data.")
             return
+        
+        label, data = data_tuple
         
         # Get current seconds
         time_seconds = time.time()
@@ -221,6 +228,9 @@ class RocketCommunication:
 
     def set_active(self):
         self._is_active = True
+        # Activate the queue
+        self._send_queue.set_queue_active(True)
+
         self._latency_thread = threading.Thread(target=self.latency_test_loop)
         self._latency_thread.start()
 
@@ -232,6 +242,7 @@ class RocketCommunication:
         self._start_time = None
         self._last_packet_timestamp = None
         self._latency_test = None
+        self._send_queue.set_queue_active(False)
 
     def _on_receive_data(self, packet) -> None:
         """
