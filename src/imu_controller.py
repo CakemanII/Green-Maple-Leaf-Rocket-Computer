@@ -34,6 +34,7 @@ class IMUSensorController(SensorController):
                 self._imu.enable_feature(BNO_REPORT_MAGNETOMETER)
                 self._imu.enable_feature(BNO_REPORT_ROTATION_VECTOR)
                 self._imu.enable_feature(BNO_REPORT_LINEAR_ACCELERATION)
+                self._imu.enable_feature(BNO_REPORT_GRAVITY)
 
                 # Verify sensor is responding by reading a value
                 _ = self._imu.acceleration
