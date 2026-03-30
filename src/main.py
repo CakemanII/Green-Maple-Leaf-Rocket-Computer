@@ -58,7 +58,7 @@ class RocketComputer:
                 # Send entire batch as single compressed transmission
                 if telemetry_objects:
                     self._rocket_communication.send_data(("d1", telemetry_objects))
-
+                telemetry_objects: list[TelemetryObject] = []
                 telemetry_objects.append({"label": "imu.grv", "timestamp": current_timestamp, "data": imu_values["gravity"]})
                 telemetry_objects.append({"label": "imu.ori", "timestamp": current_timestamp, "data": imu_values["vector_orientation"]})
                 telemetry_objects.append({"label": "imu.lac", "timestamp": current_timestamp, "data": imu_values["linear_acceleration"]})
