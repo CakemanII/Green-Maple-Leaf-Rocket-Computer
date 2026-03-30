@@ -5,6 +5,7 @@ from rocket_gcs_communication import RocketCommunication
 from rocket_controller import RocketController
 from commands_list import RocketCommand
 from rocket_sensor_data import RocketSensorData
+import GPIO
 
 import time
 
@@ -33,9 +34,6 @@ class RocketComputer:
 
     def _main_test(self):
         while True:
-            time.sleep(0.1)
-            print("Sensor Data: IMU, GPS, DPS | " + str(datetime.now()))
-
             # IMU
             imu_data = self._rocket_sensor_data.get_imu_data()
             if imu_data is not None and imu_data[1] is not None:
@@ -163,4 +161,8 @@ class RocketComputer:
         self._rocket_controller.breach_co2_canister()
 
 if __name__ == "__main__":
-    RocketComputer()
+    try:
+        RocketComputer()
+    finally:
+        print("Cleaning up GPIO...")
+        GPIO.cleanup()
