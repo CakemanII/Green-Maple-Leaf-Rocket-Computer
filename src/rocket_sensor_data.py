@@ -1,11 +1,9 @@
-from rocket_controller import RocketController
-
 import time
 import threading
 
 class RocketSensorData:
-    def __init__(self, rocketController: RocketController, interval: float = 0.15):
-        self._rocket_controller = rocketController
+    def __init__(self, rocket_controller, interval: float = 0.15):
+        self._rocket_controller = rocket_controller
         self._update_interval = interval
 
         # Initialize sensor data

@@ -13,12 +13,13 @@ class RocketComputer:
     def __init__(self):
         # Initialize Rocket GCS Communication
         self._rocket_communication = RocketCommunication()
-        
+
         # Initialize Rocket Controller
         self._rocket_controller = RocketController()
         
         # Initialize sensor data management
         self._rocket_sensor_data = RocketSensorData(self._rocket_controller)
+        self._rocket_sensor_data.start()
 
         self._rocket_controller._lcd.clear()
         self._rocket_controller._lcd.print_line("Verifying RFM9X", 0)
@@ -81,6 +82,9 @@ class RocketComputer:
             self._rocket_controller._lcd.set_live_scrolling_text(f"STATE: READY  CON: 50ms  RTMP: 25°C", 0)
             self._rocket_controller._lcd.set_live_scrolling_text(
                 f"DPS: {dps_is_valid}  IMU: {imu_is_valid}  GPS: {gps_is_valid}  CAM: OP  FAN: 0%  PIEZO: {piezo_is_valid} ", 1, delay=0.22)
+
+            # Prevent flooding worker queues (LCD + radio) and reduce bus contention.
+            time.sleep(0.1)
 
 
     def _add_command_listeners(self):
