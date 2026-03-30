@@ -114,6 +114,7 @@ class DataCompression:
         fully_compressed_data = DataCompression._compress_payload(byte_data)
         print("Byte size after compression: " + fully_compressed_data.__sizeof__().__str__())
 
+        # Return the compressed data as a string for transmission (e.g., via RFM9x)
         return str(fully_compressed_data)
 
     @staticmethod

@@ -203,14 +203,30 @@ class RocketCommunication:
         # Get current seconds
         current_time = time.time()
         
-        # Encrypt with AES
-        final_data: str = DataCompression.compress_data(datas, self._telemetry_data_transfer_types) # self._encrypt_aes(compressed_data)
+        # Compress data (returns hex string)
+        compressed_hex = DataCompression.compress_data(datas, self._telemetry_data_transfer_types)
+        
+        # Convert hex string back to bytes
+        compressed_bytes = bytes.fromhex(compressed_hex)
+        
+        # Apply AES encryption
+        final_data = self._encrypt_aes(compressed_bytes)
+        
+        # Validate packet size doesn't exceed RFM9x 252-byte limit
+        if len(final_data) > 252:
+            print(f"❌ Packet too large ({len(final_data)} bytes > 252 max). Skipping transmission.")
+            return
 
         # Send via RFM9x
-        self._rfm9x.send(final_data)
-        time_spent = time.time() - current_time
-        byte_size = len(final_data)
-        print(f"📡 Sent data with time: {time_spent:.3f}s | Size: {byte_size} bytes")
+        try:
+            self._rfm9x.send(final_data)
+            time_spent = time.time() - current_time
+            byte_size = len(final_data)
+            print(f"📡 Sent data with time: {time_spent:.3f}s | Size: {byte_size} bytes")
+        except AssertionError as e:
+            print(f"❌ RFM9x packet size error: {len(final_data)} bytes exceeds 252-byte limit: {e}")
+        except Exception as e:
+            print(f"❌ RFM9x send error: {e}")
     
     def _on_receive_data(self, packet) -> None:
         """
