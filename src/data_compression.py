@@ -114,10 +114,7 @@ class DataCompression:
         fully_compressed_data = DataCompression._compress_payload(byte_data)
         print("Byte size after compression: " + fully_compressed_data.__sizeof__().__str__())
 
-        # Encode to base64 for safe transmission as text
-        hexing = fully_compressed_data.hex()
-        print("Byte size after hex encoding: " + hexing.__sizeof__().__str__())
-        return hexing
+        return str(fully_compressed_data)
 
     @staticmethod
     def _get_code_from_label(label: str, telemetry_data_transfer_types: TelemetryDataTransferTypes) -> str:
