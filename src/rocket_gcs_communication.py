@@ -190,6 +190,7 @@ class RocketCommunication:
         encrypted_data = self._encrypt_aes(byte_data)
 
         # Send via RFM9x
+        print(f"📡 Sending data with label '{label}' at {time_seconds:.3f} seconds")
         self._rfm9x.send(encrypted_data)
 
     # region Latency Test

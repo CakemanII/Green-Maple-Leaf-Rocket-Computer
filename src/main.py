@@ -50,18 +50,18 @@ class RocketComputer:
             
             # DPS
             dps_data = self._rocket_sensor_data.get_dps_data()
-            # if dps_data is not None and dps_data[1] is not None:
-            #     dps_values = dps_data[1]
-            #     self._rocket_communication.send_data("dps.prs", (dps_data[0], dps_values["pressure"]))
-            #     self._rocket_communication.send_data("dps.alt", (dps_data[0], dps_values["altitude"]))
-            #     self._rocket_communication.send_data("dps.tmp", (dps_data[0], dps_values["temperature"]))
+            if dps_data is not None and dps_data[1] is not None:
+                dps_values = dps_data[1]
+                self._rocket_communication.send_data("dps.prs", (dps_data[0], dps_values["pressure"]))
+                self._rocket_communication.send_data("dps.alt", (dps_data[0], dps_values["altitude"]))
+                self._rocket_communication.send_data("dps.tmp", (dps_data[0], dps_values["temperature"]))
 
             # GPS
             gps_data = self._rocket_sensor_data.get_gps_data()
-            # if gps_data is not None and gps_data[1] is not None:
-            #     gps_values = gps_data[1]
-            #     self._rocket_communication.send_data("gps.pos", (gps_data[0], (gps_values["latitude"], gps_values["longitude"])))
-            #     self._rocket_communication.send_data("gps.alt", (gps_data[0], gps_values["altitude"]))
+            if gps_data is not None and gps_data[1] is not None:
+                gps_values = gps_data[1]
+                self._rocket_communication.send_data("gps.pos", (gps_data[0], (gps_values["latitude"], gps_values["longitude"])))
+                self._rocket_communication.send_data("gps.alt", (gps_data[0], gps_values["altitude"]))
 
             # RASPI COMPUTER STATS
             raspi_computer_data = self._rocket_sensor_data.get_raspi_stats()
