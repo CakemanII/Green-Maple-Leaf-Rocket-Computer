@@ -91,7 +91,7 @@ class DataCompression:
             # Compress the label
             compressed_label = DataCompression._get_code_from_label(data["label"], telemetry_data_transfer_types)
 
-            # Set the first timestamp or check
+            # Set the first timestamp or check2
             if first_timestamp is None:
                 first_timestamp = data["timestamp"]
             elif all_same_timestamp == True and data["timestamp"] != first_timestamp:
