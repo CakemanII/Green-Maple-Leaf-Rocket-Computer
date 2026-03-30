@@ -41,7 +41,7 @@ class RocketComputer:
             imu_data = self._rocket_sensor_data.get_imu_data()
             if imu_data is not None and imu_data[1] is not None:
                 imu_values = imu_data[1]
-                self._rocket_communication.send_data("imu.acc", (imu_data[0], imu_values["acceleration"]))
+                self._rocket_communication.send_data("imu.acc", (imu_data[0], (imu_values["acceleration"], imu_values["acceleration"], imu_values["acceleration"] ,imu_values["acceleration"] ,imu_values["acceleration"])))
                 self._rocket_communication.send_data("imu.anv", (imu_data[0], imu_values["gyro"]))
                 self._rocket_communication.send_data("imu.mgn", (imu_data[0], imu_values["magnetometer"]))
                 self._rocket_communication.send_data("imu.grv", (imu_data[0], imu_values["gravity"]))
