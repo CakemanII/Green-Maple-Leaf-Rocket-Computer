@@ -11,16 +11,20 @@ import os
 import zlib
 import lzma
 import json
+from telemetry_data_transfer_types_retrieval import TelemetryDataTransferTypes
 try:
     import msgpack
     HAS_MSGPACK = True
 except ImportError:
     HAS_MSGPACK = False
 
-class RadioDataObject(TypedDict):
-    l: str # label
-    s: float # timestamp in seconds
-    d: object # data payload
+from data_compression import DataCompression
+
+DataValue = float | bool | list[float | bool]
+class TelemetryObject(TypedDict):
+    label: str # label
+    timestamp: float # timestamp in seconds
+    data: DataValue # data payload
 
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
@@ -36,13 +40,9 @@ class RocketCommunication:
     LATENCY_IN_LABEL = "gcsp" # Ground station to Rocket
     LATENCY_OUT_LABEL = "rokp" # Rocket to Ground station response
 
-    # Compression markers (first byte in payload)
-    COMPRESS_NONE = b"N"
-    COMPRESS_ZLIB = b"Z"
-    COMPRESS_LZMA = b"L"
-
-    def __init__(self, radio_freq_mhz: float = 915.0, aes_key: bytes = None):
+    def __init__(self, radio_freq_mhz: float = 915.0, aes_key: bytes = None, telemetry_data_transfer_types: TelemetryDataTransferTypes = None):
         # Initialize RocketCommunication with RocketController and radio frequency
+        self._telemetry_data_transfer_types = telemetry_data_transfer_types
         self._radio_freq_mhz = radio_freq_mhz
         self._rfm9x = None
         self._listeners: dict[str, list[callable]] = {}
@@ -188,57 +188,7 @@ class RocketCommunication:
     def send_data(self, label: str, data: object):
         self._send_queue.add_to_queue((label, data))
 
-    def _compress_payload(self, raw_bytes: bytes) -> bytes:
-        """Lossless adaptive compression: choose the smallest payload."""
-        zlib_bytes = zlib.compress(raw_bytes, level=9)
-        lzma_bytes = lzma.compress(raw_bytes, preset=(9 | lzma.PRESET_EXTREME))
-
-        candidates = [
-            (RocketCommunication.COMPRESS_NONE, raw_bytes),
-            (RocketCommunication.COMPRESS_ZLIB, zlib_bytes),
-            (RocketCommunication.COMPRESS_LZMA, lzma_bytes),
-        ]
-
-        marker, compressed = min(candidates, key=lambda pair: len(pair[1]))
-        return marker + compressed
-
-    def _decompress_payload(self, payload: bytes) -> bytes:
-        """Reverse adaptive compression based on the leading marker byte."""
-        if not payload:
-            raise ValueError("Empty payload")
-
-        marker = payload[:1]
-        data = payload[1:]
-
-        if marker == RocketCommunication.COMPRESS_NONE:
-            return data
-        if marker == RocketCommunication.COMPRESS_ZLIB:
-            return zlib.decompress(data)
-        if marker == RocketCommunication.COMPRESS_LZMA:
-            return lzma.decompress(data)
-
-        # Backward compatibility for old packets without marker
-        return payload
-
-    def _serialize_data(self, data_obj: dict) -> bytes:
-        """Serialize to binary (MessagePack) or compact JSON. MessagePack is ~40% smaller."""
-        if HAS_MSGPACK:
-            return msgpack.packb(data_obj, use_bin_type=True)
-        else:
-            return json.dumps(data_obj, separators=(",", ":")).encode("utf-8")
-
-    def _deserialize_data(self, data_bytes: bytes) -> dict:
-        """Deserialize from binary (MessagePack) or JSON."""
-        if HAS_MSGPACK:
-            try:
-                return msgpack.unpackb(data_bytes, raw=False)
-            except Exception:
-                # Fallback to JSON if MessagePack fails
-                return json.loads(data_bytes.decode("utf-8"))
-        else:
-            return json.loads(data_bytes.decode("utf-8"))
-
-    def _send_data(self, data_tuple: tuple[str, object]):
+    def _send_data(self, datas: list[TelemetryObject]):
         """
         Send data via RFM9x.
         """
@@ -249,34 +199,18 @@ class RocketCommunication:
         if self._rfm9x is None:
             print("❌ RFM9x not initialized, cannot send data.")
             return
-        
-        label, data = data_tuple
-        
+                
         # Get current seconds
-        time_seconds = time.time()
-
-        # Create object
-        data_packet: RadioDataObject = {
-            "l": label,
-            "s": time_seconds,
-            "d": data
-        }
-
-        # Convert to binary (MessagePack ~40% smaller than JSON, then compress)
         current_time = time.time()
-        byte_data = self._serialize_data(data_packet)
-
-        # Lossless adaptive compression for maximum size reduction
-        compressed_data = self._compress_payload(byte_data)
         
         # Encrypt with AES
-        encrypted_data = compressed_data # self._encrypt_aes(compressed_data)
+        final_data: str = DataCompression.compress_data(datas, self._telemetry_data_transfer_types) # self._encrypt_aes(compressed_data)
 
         # Send via RFM9x
-        self._rfm9x.send(encrypted_data)
+        self._rfm9x.send(final_data)
         time_spent = time.time() - current_time
-        byte_size = len(encrypted_data)
-        print(f"📡 Sent data with label '{label}' (time): {time_spent:.3f}s | Size: {byte_size} bytes")
+        byte_size = len(final_data)
+        print(f"📡 Sent data with time: {time_spent:.3f}s | Size: {byte_size} bytes")
     
     def _on_receive_data(self, packet) -> None:
         """

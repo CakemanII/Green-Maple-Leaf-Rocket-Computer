@@ -15,7 +15,7 @@ class TelemetryDataTransferTypes:
         with open(TelemetryDataTransferTypes.TELEMETRY_TYPES_FILEPATH, "r", encoding="utf-8") as f:
             telemetry_data_transfer_types = json.load(f)
         return telemetry_data_transfer_types
-    
+        
 
     def is_type_label_valid_for_category(self, category: str, label: str) -> bool:
         """
@@ -42,6 +42,14 @@ class TelemetryDataTransferTypes:
             expected_type = type(expected_type)
 
         return isinstance(data, expected_type)
+    
+    def get_index_of_category_and_label(self, category: str, label: str) -> tuple[int, int] | None:
+        """
+        Get the index of a category and label in the telemetry data transfer types.
+        """
+        if not self.is_type_label_valid_for_category(category, label):
+            return None
+        return list(self._telemetry_data_transfer_types.keys()).index(category), list(self._telemetry_data_transfer_types[category].keys()).index(label)
     
     def convert_string_type_to_python_type(self, type_str: str) -> type:
         """
