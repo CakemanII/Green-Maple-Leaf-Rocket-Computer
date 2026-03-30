@@ -202,6 +202,21 @@ class RocketCommunication:
                 
         # Get current seconds
         current_time = time.time()
+
+        # Iterate and ensure each telemetry label is correct
+        for data in datas:
+            if "label" not in data or "timestamp" not in data or "data" not in data:
+                print(f"❌ Invalid telemetry object format: {data}. Skipping this object.")
+                return
+            if not isinstance(data["label"], str) or not isinstance(data["timestamp"], (int, float)):
+                print(f"❌ Invalid telemetry object types: {data}. Skipping this object.")
+                return
+            
+            # Ensure they're correct
+            correct: bool = self._telemetry_data_transfer_types.is_type_for_label_in_category_valid(data["label"], data["data"])
+            if not correct:
+                print(f"❌ Telemetry object has invalid data type for its label: {data}. Skipping this object.")
+                return
         
         # Compress data to raw bytes.
         compressed_bytes = DataCompression.compress_data(datas, self._telemetry_data_transfer_types)
