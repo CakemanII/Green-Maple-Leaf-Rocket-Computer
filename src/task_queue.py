@@ -4,11 +4,12 @@ import time
 import sys
 
 class Queue:
-    def __init__(self, operations_per_second: float, queue_processor: callable, queue_name: str = "(Unnamed)"):
+    def __init__(self, operations_per_second: float, queue_processor: callable, queue_name: str = "(Unnamed)", print_length_of_queue: bool = False):
         self._queue: list[any] = []
         self._queue_name = queue_name
         self._queue_processor = queue_processor
         self._active = False
+        self._print_length_of_queue = print_length_of_queue
         
         self._thread: threading.Thread | None = None
         
@@ -33,6 +34,11 @@ class Queue:
             else:
                 # No data to process, just wait for the next interval
                 pass
+
+            # Optionally print the length of the queue for debugging
+            if self._print_length_of_queue:
+                print(f"Queue {self._queue_name} Remaining Length: {len(self._queue)}")
+                sys.stdout.flush()
 
             # Wait for the next processing interval
             time_remaining = self._process_interval - (time.time() - start_process_time)
