@@ -295,10 +295,9 @@ class RocketCommunication:
         self._send_queue.set_queue_active(True)
 
         self._latency_thread = threading.Thread(target=self.latency_test_loop)
-        self._latency_thread.start()
-
+        #self._latency_thread.start()
         self._receiver_thread = threading.Thread(target=self._receive_listener_loop, daemon=True)
-        self._receiver_thread.start()
+        #self._receiver_thread.start()
 
     def set_inactive(self):
         self._is_active = False
