@@ -11,6 +11,9 @@ import time
 
 class RocketComputer:
     def __init__(self):
+        # Initialize Rocket GCS Communication
+        self._rocket_communication = RocketCommunication()
+        
         # Initialize Rocket Controller
         self._rocket_controller = RocketController()
         
@@ -20,8 +23,7 @@ class RocketComputer:
         self._rocket_controller._lcd.clear()
         self._rocket_controller._lcd.print_line("Verifying RFM9X", 0)
 
-        # Initialize Rocket GCS Communication
-        self._rocket_communication = RocketCommunication()
+        
 
         # Add listeners for commands
         self._add_command_listeners()
