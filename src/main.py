@@ -60,7 +60,7 @@ class RocketComputer:
 
             # Send entire batch as single compressed transmission
             if telemetry_objects:
-                self._rocket_communication.send_data("telemetry.batch", telemetry_objects)
+                self._rocket_communication.send_data(telemetry_objects)
 
             # LCD Status Display
             dps_data = None
