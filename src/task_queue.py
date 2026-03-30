@@ -81,6 +81,7 @@ class Queue:
         if self._enable_replacing_queue_objects:
             # If an object with the same label already exists, replace it instead of adding a new one
             for i, existing_object in enumerate(self._queue):
+                if i == 0: continue  # Skip the currently processing object
                 if existing_object[0] == queue_object[0]:  # Assuming the first element is a label or identifier
                     self._queue[i] = queue_object  # Replace the existing object
                     return
