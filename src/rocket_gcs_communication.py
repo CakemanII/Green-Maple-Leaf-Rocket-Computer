@@ -88,7 +88,15 @@ class RocketCommunication:
                 spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 
                 # Initialize RFM9x
-                rfm9x = adafruit_rfm9x.RFM9x(spi, CS, RESET, self._radio_freq_mhz)
+                rfm9x = adafruit_rfm9x.RFM9x(
+                    spi=spi, 
+                    cs=CS, 
+                    agc=True,
+                    reset=RESET, 
+                    frequency=self._radio_freq_mhz,
+                    preamble_length=4,
+                    baudrate=10000000
+                )
                 self._rfm9x = rfm9x
                 print("✅ RFM9x found and initialized.")
                 break
