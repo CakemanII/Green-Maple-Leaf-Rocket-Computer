@@ -161,6 +161,9 @@ class RocketCommunication:
         return data
     # endregion
 
+    def _send_data(self, label: str, data: object):
+        pass
+
     def send_data(self, label: str, data: object):
         """
         Send data via RFM9x.
@@ -190,10 +193,12 @@ class RocketCommunication:
         # Encrypt with AES
         encrypted_data = self._encrypt_aes(byte_data)
         byte_size = len(encrypted_data)
+        time_speont = time.time() - current_time
+
+        print("Time spent encoding and encrypting data: {:.3f} seconds".format(time_speont))
 
         # Send via RFM9x
         self._rfm9x.send(encrypted_data)
-        time_speont = time.time() - current_time
         print(f"📡 Sent data with label '{label}' (encryption + transmission time): {time_speont:.3f} seconds with a size of {byte_size} bytes")
 
     # region Latency Test
