@@ -205,6 +205,14 @@ class RocketCommunication:
         
         # Compress data to raw bytes.
         compressed_bytes = DataCompression.compress_data(datas, self._telemetry_data_transfer_types)
+
+        if compressed_bytes is None:
+            print("❌ Data compression failed, cannot send data.")
+            return
+        
+        if len(compressed_bytes) > 252:
+            print(f"⚠️  Compressed data size ({len(compressed_bytes)} bytes) exceeds RFM9x limit. Cannot send..")
+            return
         
         # Apply AES encryption
         final_data = self._encrypt_aes(compressed_bytes)
