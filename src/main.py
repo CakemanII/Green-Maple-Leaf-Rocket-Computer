@@ -37,44 +37,41 @@ class RocketComputer:
 
     def _main_test(self):
         while True:
+            # Collect all telemetry data into a single batch
+            telemetry_batch = {}
+            current_timestamp = time.time()
+
             # IMU
             imu_data = self._rocket_sensor_data.get_imu_data()
             if imu_data is not None and imu_data[1] is not None:
                 imu_values = imu_data[1]
-                self._rocket_communication.send_data("imu.acc", (imu_data[0], (imu_values["acceleration"], imu_values["acceleration"], imu_values["acceleration"] ,imu_values["acceleration"] ,imu_values["acceleration"])))
-                self._rocket_communication.send_data("imu.anv", (imu_data[0], imu_values["gyro"]))
-                self._rocket_communication.send_data("imu.mgn", (imu_data[0], imu_values["magnetometer"]))
-                self._rocket_communication.send_data("imu.grv", (imu_data[0], imu_values["gravity"]))
-                self._rocket_communication.send_data("imu.ori", (imu_data[0], imu_values["vector_orientation"]))
-                self._rocket_communication.send_data("imu.lac", (imu_data[0], imu_values["linear_acceleration"]))
+                telemetry_batch["imu.acc"] = imu_values["acceleration"]
+                telemetry_batch["imu.anv"] = imu_values["gyro"]
+                telemetry_batch["imu.mgn"] = imu_values["magnetometer"]
+                telemetry_batch["imu.grv"] = imu_values["gravity"]
+                telemetry_batch["imu.ori"] = imu_values["vector_orientation"]
+                telemetry_batch["imu.lac"] = imu_values["linear_acceleration"]
             
             # DPS
             dps_data = self._rocket_sensor_data.get_dps_data()
             if dps_data is not None and dps_data[1] is not None:
                 dps_values = dps_data[1]
-                self._rocket_communication.send_data("dps.prs", (dps_data[0], dps_values["pressure"]))
-                self._rocket_communication.send_data("dps.alt", (dps_data[0], dps_values["altitude"]))
-                self._rocket_communication.send_data("dps.tmp", (dps_data[0], dps_values["temperature"]))
+                telemetry_batch["dps.prs"] = dps_values["pressure"]
+                telemetry_batch["dps.alt"] = dps_values["altitude"]
+                telemetry_batch["dps.tmp"] = dps_values["temperature"]
 
             # GPS
             gps_data = self._rocket_sensor_data.get_gps_data()
             if gps_data is not None and gps_data[1] is not None:
                 gps_values = gps_data[1]
-                self._rocket_communication.send_data("gps.pos", (gps_data[0], (gps_values["latitude"], gps_values["longitude"])))
-                self._rocket_communication.send_data("gps.alt", (gps_data[0], gps_values["altitude"]))
+                telemetry_batch["gps.pos"] = (gps_values["latitude"], gps_values["longitude"])
+                telemetry_batch["gps.alt"] = gps_values["altitude"]
 
-            # RASPI COMPUTER STATS
-            raspi_computer_data = self._rocket_sensor_data.get_raspi_stats()
-            # if raspi_computer_data is not None and raspi_computer_data[1] is not None:
-            #     raspi_values = raspi_computer_data[1]
-            #     self._rocket_communication.send_data("rasp.ram", (raspi_computer_data[0], raspi_values["ram_percent"]))
-            #     self._rocket_communication.send_data("rasp.cpu", (raspi_computer_data[0], raspi_values["cpu_usage_percent"]))
-            #     self._rocket_communication.send_data("rasp.dsk", (raspi_computer_data[0], raspi_values["disk_usage_percent"]))
-            #     self._rocket_communication.send_data("rasp.tmp", (raspi_computer_data[0], raspi_values["cpu_temp"]))
-            #     self._rocket_communication.send_data("rasp.vlt", (raspi_computer_data[0], raspi_values["voltage"]))
-            #     self._rocket_communication.send_data("rasp.pwr", (raspi_computer_data[0], raspi_values["throttled"]))
-            #     self._rocket_communication.send_data("rasp.upt", (raspi_computer_data[0], raspi_values["uptime"]))
+            # Send entire batch as single compressed transmission
+            if telemetry_batch:
+                self._rocket_communication.send_data("telemetry.batch", telemetry_batch)
 
+            # LCD Status Display
             imu_is_valid = "OP" if imu_data is not None and imu_data[1] is not None else "ERR"
             dps_is_valid = "OP" if dps_data is not None and dps_data[1] is not None else "ERR"
             gps_is_valid = "OP" if gps_data is not None and gps_data[1] is not None else "ERR"
