@@ -104,15 +104,20 @@ class DataCompression:
             compressed_data.append((compressed_label, data_value + [data["timestamp"]]))
 
         data_with_sent_timestamp = (time.time(), compressed_data)
+        print("Byte size after phase 1: " + bytes(str(data_with_sent_timestamp), "utf-8").__sizeof__().__str__())
 
         # Convert to bytes
         byte_data = DataCompression._serialize_data(data_with_sent_timestamp)
+        print("Byte size after serialization: " + byte_data.__sizeof__().__str__())
 
         # Lossless adaptive compression for maximum size reduction
         fully_compressed_data = DataCompression._compress_payload(byte_data)
+        print("Byte size after compression: " + fully_compressed_data.__sizeof__().__str__())
 
         # Encode to base64 for safe transmission as text
-        return fully_compressed_data.hex()
+        hexing = fully_compressed_data.hex()
+        print("Byte size after hex encoding: " + hexing.__sizeof__().__str__())
+        return hexing
 
     @staticmethod
     def _get_code_from_label(label: str, telemetry_data_transfer_types: TelemetryDataTransferTypes) -> str:
