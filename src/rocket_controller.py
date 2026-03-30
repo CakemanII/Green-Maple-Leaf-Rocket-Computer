@@ -108,4 +108,5 @@ class RocketController:
     def get_dps_sensor_data(self) -> object | None: return self._dps.get_sensor_data()
     def get_gps_sensor_data(self) -> object | None: return self._gps.get_sensor_data()
     def get_imu_sensor_data(self) -> object | None: return self._imu.get_sensor_data()
+    def get_raspi_stats(self) -> object | None: return self._raspi_controller.get_raspi_stats()
     # endregion
