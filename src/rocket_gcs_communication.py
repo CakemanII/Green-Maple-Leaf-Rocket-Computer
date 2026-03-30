@@ -69,7 +69,7 @@ class RocketCommunication:
             print(f"✅ Using provided AES-{len(aes_key)*8} key")
 
         # Create the send queue
-        self._send_queue = Queue(operations_per_second=20, queue_processor=self._send_data, queue_name="Rocket Send Queue", print_length_of_queue=True)
+        self._send_queue = Queue(operations_per_second=20, queue_processor=self._send_data, queue_name="Rocket Send Queue", print_length_of_queue=True, print_time_per_operation=True)
 
         # Verify RFM9x device is connected and wired connection
         self._verify_rfm9x_device(True)
