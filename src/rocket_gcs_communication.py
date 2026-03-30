@@ -93,9 +93,7 @@ class RocketCommunication:
                     cs=CS, 
                     agc=True,
                     reset=RESET, 
-                    frequency=self._radio_freq_mhz,
-                    preamble_length=4,
-                    baudrate=10000000
+                    frequency=self._radio_freq_mhz
                 )
                 self._rfm9x = rfm9x
                 print("✅ RFM9x found and initialized.")
@@ -186,6 +184,7 @@ class RocketCommunication:
         return data
     # endregion
 
+    # region Compression and Sending
     def send_data(self, label: str, data: object):
         self._send_queue.add_to_queue((label, data))
 
@@ -278,6 +277,37 @@ class RocketCommunication:
         time_spent = time.time() - current_time
         byte_size = len(encrypted_data)
         print(f"📡 Sent data with label '{label}' (time): {time_spent:.3f}s | Size: {byte_size} bytes")
+    
+    def _on_receive_data(self, packet) -> None:
+        """
+        Receive data via RFM9x.
+        Send to appropriate listeners.
+        """
+        try:
+            # Decrypt packet when encryption is enabled; fallback to raw packet otherwise.
+            try:
+                decrypted_bytes = self._decrypt_aes(packet)
+            except Exception:
+                decrypted_bytes = packet
+
+            # Decompress payload if compressed
+            decoded_bytes = self._decompress_payload(decrypted_bytes)
+            
+            # Deserialize from binary (MessagePack) or JSON
+            data_obj: RadioDataObject = self._deserialize_data(decoded_bytes)
+
+            # Set the latency
+            self._set_latency_from_data(data_obj)
+
+            # Notify listeners
+            label = data_obj.get("l")
+            if label in self._listeners:
+                for callback in self._listeners[label]:
+                    callback(data_obj)
+
+        except Exception as e:
+            print(f"❌ Error decrypting/processing received data: {e}")
+    # endregion
 
     # region Latency Test
     def latency_test_loop(self):
@@ -313,36 +343,6 @@ class RocketCommunication:
         self._last_packet_timestamp = None
         self._latency_test = None
         self._send_queue.set_queue_active(False)
-
-    def _on_receive_data(self, packet) -> None:
-        """
-        Receive data via RFM9x.
-        Send to appropriate listeners.
-        """
-        try:
-            # Decrypt packet when encryption is enabled; fallback to raw packet otherwise.
-            try:
-                decrypted_bytes = self._decrypt_aes(packet)
-            except Exception:
-                decrypted_bytes = packet
-
-            # Decompress payload if compressed
-            decoded_bytes = self._decompress_payload(decrypted_bytes)
-            
-            # Deserialize from binary (MessagePack) or JSON
-            data_obj: RadioDataObject = self._deserialize_data(decoded_bytes)
-
-            # Set the latency
-            self._set_latency_from_data(data_obj)
-
-            # Notify listeners
-            label = data_obj.get("l")
-            if label in self._listeners:
-                for callback in self._listeners[label]:
-                    callback(data_obj)
-
-        except Exception as e:
-            print(f"❌ Error decrypting/processing received data: {e}")
 
     def add_listener(self, label: str, callback: callable) -> None:
         """
