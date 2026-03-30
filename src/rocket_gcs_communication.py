@@ -185,8 +185,8 @@ class RocketCommunication:
     # endregion
 
     # region Compression and Sending
-    def send_data(self, label: str, data: object):
-        self._send_queue.add_to_queue((label, data))
+    def send_data(self, datas: list[TelemetryObject]):
+        self._send_queue.add_to_queue(datas)
 
     def _send_data(self, datas: list[TelemetryObject]):
         """
@@ -217,6 +217,7 @@ class RocketCommunication:
         Receive data via RFM9x.
         Send to appropriate listeners.
         """
+        return
         try:
             # Decrypt packet when encryption is enabled; fallback to raw packet otherwise.
             try:

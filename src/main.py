@@ -8,6 +8,8 @@ from commands_list import RocketCommand
 from rocket_sensor_data import RocketSensorData
 import RPi.GPIO as GPIO
 
+from data_compression import TelemetryObject
+
 import time
 
 class RocketComputer:
@@ -41,24 +43,24 @@ class RocketComputer:
 
     def _main_test(self):
         while True:
-            # Collect all telemetry data into a single batch
-            telemetry_batch = {}
+            # Collect telemetry as list of TelemetryObject instances
+            telemetry_objects: list[TelemetryObject] = []
             current_timestamp = time.time()
 
             # IMU
             imu_data = self._rocket_sensor_data.get_imu_data()
             if imu_data is not None and imu_data[1] is not None:
                 imu_values = imu_data[1]
-                telemetry_batch["imu.acc"] = imu_values["acceleration"]
-                telemetry_batch["imu.anv"] = imu_values["gyro"]
-                telemetry_batch["imu.mgn"] = imu_values["magnetometer"]
-                telemetry_batch["imu.grv"] = imu_values["gravity"]
-                telemetry_batch["imu.ori"] = imu_values["vector_orientation"]
-                telemetry_batch["imu.lac"] = imu_values["linear_acceleration"]
+                telemetry_objects.append({"label": "imu.acc", "timestamp": current_timestamp, "data": imu_values["acceleration"]})
+                telemetry_objects.append({"label": "imu.anv", "timestamp": current_timestamp, "data": imu_values["gyro"]})
+                telemetry_objects.append({"label": "imu.mgn", "timestamp": current_timestamp, "data": imu_values["magnetometer"]})
+                telemetry_objects.append({"label": "imu.grv", "timestamp": current_timestamp, "data": imu_values["gravity"]})
+                telemetry_objects.append({"label": "imu.ori", "timestamp": current_timestamp, "data": imu_values["vector_orientation"]})
+                telemetry_objects.append({"label": "imu.lac", "timestamp": current_timestamp, "data": imu_values["linear_acceleration"]})
 
             # Send entire batch as single compressed transmission
-            if telemetry_batch:
-                self._rocket_communication.send_data("telemetry.batch", telemetry_batch)
+            if telemetry_objects:
+                self._rocket_communication.send_data("telemetry.batch", telemetry_objects)
 
             # LCD Status Display
             dps_data = None
