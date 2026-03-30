@@ -5,7 +5,7 @@ from rocket_gcs_communication import RocketCommunication
 from rocket_controller import RocketController
 from commands_list import RocketCommand
 from rocket_sensor_data import RocketSensorData
-import GPIO
+import RPi.GPIO as GPIO
 
 import time
 
