@@ -29,26 +29,16 @@ class DataCompression:
     @staticmethod
     def _compress_payload(raw_bytes: bytes) -> bytes:
         """Lossless adaptive compression: choose the smallest payload."""
-        previous_compression_size = raw_bytes.__sizeof__()
-        current = raw_bytes
+        zlib_bytes = zlib.compress(raw_bytes, level=9)
+        lzma_bytes = lzma.compress(raw_bytes, preset=(9 | lzma.PRESET_EXTREME))
 
-        for _ in range(10):
-            zlib_bytes = zlib.compress(current, level=9)
-            lzma_bytes = lzma.compress(current, preset=(9 | lzma.PRESET_EXTREME))
+        candidates = [
+            (DataCompression.COMPRESS_NONE, raw_bytes),
+            (DataCompression.COMPRESS_ZLIB, zlib_bytes),
+            (DataCompression.COMPRESS_LZMA, lzma_bytes),
+        ]
 
-            candidates = [
-                (DataCompression.COMPRESS_NONE, current),
-                (DataCompression.COMPRESS_ZLIB, zlib_bytes),
-                (DataCompression.COMPRESS_LZMA, lzma_bytes),
-            ]
-
-            marker, compressed = min(candidates, key=lambda pair: len(pair[1]))
-            current = marker + compressed
-
-            if len(current) >= previous_compression_size:
-                break  # Stop if no further compression is achieved
-
-            previous_compression_size = len(current)
+        marker, compressed = min(candidates, key=lambda pair: len(pair[1]))
         return marker + compressed
 
     @staticmethod
