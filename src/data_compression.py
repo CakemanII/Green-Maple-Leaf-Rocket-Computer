@@ -119,6 +119,8 @@ class DataCompression:
         """
         Returns a 2 character code for a given label.
         """
-        return DataCompression.LABEL_INTERATION_CODES[telemetry_data_transfer_types.get_index_of_category_and_label(label.split(".")[0], label.split(".")[1])[0]] + DataCompression.LABEL_INTERATION_CODES[telemetry_data_transfer_types.get_index_of_category_and_label(label.split(".")[0], label.split(".")[1])[1]]
-
-
+        label_split = label.split(".")
+        if len(label_split) != 2:
+            raise ValueError(f"Label '{label}' is not in the correct format 'category.label'")
+        
+        return DataCompression.LABEL_INTERATION_CODES[telemetry_data_transfer_types.get_index_of_category_and_label(label_split[0], label_split[1])[0]] + DataCompression.LABEL_INTERATION_CODES[telemetry_data_transfer_types.get_index_of_category_and_label(label_split[0], label_split[1])[1]]
