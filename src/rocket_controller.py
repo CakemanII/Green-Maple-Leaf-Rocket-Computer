@@ -53,11 +53,10 @@ class RocketController:
         # Testing Servo
         self._lcd.print_line("Testing Servo", 0)
         self._lcd.print_line("Servo should be moving", 1)
-        positions = [0, 45, 90, 135, 180, 0, -45, -90, -135, -180, 0]
+        positions = [0, 45, 90, 180, 90, 45, 0]
         for pos in positions:
             self._servo_controller_1.set_servo_angle(pos)
             self._servo_controller_2.set_servo_angle(pos)
-            time.sleep(1)
 
         # Play the piezo buzzer to indicate startup
         self._lcd.print_line("Playing Piezo", 0)
