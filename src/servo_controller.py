@@ -18,7 +18,7 @@ class ServoController:
         self._pwm.start(0)  # start with 0 duty cycle
 
         # Thread
-        self._update_thread = threading.Thread(target=self._update_servo_position)
+        self._update_thread = threading.Thread(target=self._main)
         self._update_thread.daemon = True
         self._update_thread.start()
 
