@@ -17,6 +17,18 @@ class ServoController:
         self._pwm = GPIO.PWM(self._servo_pin, 50)
         self._pwm.start(0)  # start with 0 duty cycle
 
+        # Thread
+        self._update_thread = threading.Thread(target=self._update_servo_position)
+        self._update_thread.daemon = True
+        self._update_thread.start()
+
+    def _main(self):
+        try:
+            while True:
+                time.sleep(ServoController.SERVO_UPDATE_INTERVAL)
+        except KeyboardInterrupt:
+            self.cleanup()
+
     def set_servo_angle(self, angle: float):
         if angle < 0 or angle > 180:
             print(f"⚠️  Attempted to set servo angle out of bounds: {angle}. Clamping to valid range.")
