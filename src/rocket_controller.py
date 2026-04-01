@@ -40,7 +40,7 @@ class RocketController:
         self._lcd = LCDController()
 
         # Create Servo Controllers
-        self._servo_controller = ServoController(pin=16)
+        self._servo_controller = ServoController(pin=23)
 
         # Blink the LCD backlight a few times to indicate startup
         for _ in range(1):
