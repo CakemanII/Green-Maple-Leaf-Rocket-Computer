@@ -1,6 +1,6 @@
 from datetime import datetime
 
-import rocket_controller
+from rocket_controller import RocketController
 from rocket_communication import RocketCommunication
 from telemetry_data_transfer_types_retrieval import TelemetryDataTransferTypes
 from rocket_controller import RocketController
