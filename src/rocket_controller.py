@@ -41,6 +41,15 @@ class RocketController:
 
         # Create Servo Controllers
         self._servo_controller = ServoController(pin=16)
+        for _ in range(4):
+            self._servo_controller.set_servo_angle(45)  # Start with servo in default position
+            time.sleep(0.5)
+            self._servo_controller.set_servo_angle(90)
+            time.sleep(0.5)
+            self._servo_controller.set_servo_angle(45)
+            time.sleep(0.5)
+            self._servo_controller.set_servo_angle(0)
+            time.sleep(0.5)
 
         # Blink the LCD backlight a few times to indicate startup
         for _ in range(1):

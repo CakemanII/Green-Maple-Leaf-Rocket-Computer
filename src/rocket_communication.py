@@ -212,8 +212,16 @@ class RocketCommunication:
                 print(f"❌ Invalid telemetry object types: {data}. Skipping this object.")
                 return
             
+            if data["data"] is None:
+                print(f"⚠️  Telemetry object has None data: {data}. Skipping this object.")
+                return
+            if data["label"] is None:
+                print(f"⚠️  Telemetry object has None label: {data}. Skipping this object.")
+                return
+            
             # Ensure they're correct
-            correct: bool = self._telemetry_data_transfer_types.is_type_for_label_in_category_valid(data["label"], data["data"])
+            category, label = data["label"].split(".") if "." in data["label"] else (None, None)
+            correct: bool = self._telemetry_data_transfer_types.is_type_for_label_in_category_valid(category, label, data["data"])
             if not correct:
                 print(f"❌ Telemetry object has invalid data type for its label: {data}. Skipping this object.")
                 return
