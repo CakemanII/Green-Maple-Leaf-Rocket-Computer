@@ -40,7 +40,8 @@ class RocketController:
         self._lcd = LCDController()
 
         # Create Servo Controllers
-        self._servo_controller = ServoController(pin=23)
+        self._servo_controller_1 = ServoController(pin=23)
+        self._servo_controller_2 = ServoController(pin=24)
 
         # Blink the LCD backlight a few times to indicate startup
         for _ in range(1):
@@ -52,14 +53,10 @@ class RocketController:
         # Testing Servo
         self._lcd.print_line("Testing Servo", 0)
         self._lcd.print_line("Servo should be moving", 1)
-        for _ in range(4):
-            self._servo_controller.set_servo_angle(45)  # Start with servo in default position
-            time.sleep(0.5)
-            self._servo_controller.set_servo_angle(90)
-            time.sleep(0.5)
-            self._servo_controller.set_servo_angle(45)
-            time.sleep(0.5)
-            self._servo_controller.set_servo_angle(0)
+        positions = [0, 45, 90, 135, 180, 0, -45, -90, -135, -180, 0]
+        for pos in positions:
+            self._servo_controller_1.set_servo_angle(pos)
+            self._servo_controller_2.set_servo_angle(pos)
             time.sleep(0.5)
 
         # Play the piezo buzzer to indicate startup
