@@ -55,9 +55,11 @@ class RocketController:
         for _ in range(4):
             self._servo_controller.set_servo_angle(45)  # Start with servo in default position
             time.sleep(0.5)
-            self._servo_controller.set_servo_angle(90)
+            self._servo_controller.set_servo_angle(360)
             time.sleep(0.5)
-            self._servo_controller.set_servo_angle(45)
+            self._servo_controller.set_servo_angle(370)
+            time.sleep(0.5)
+            self._servo_controller.set_servo_angle(720)
             time.sleep(0.5)
             self._servo_controller.set_servo_angle(0)
             time.sleep(0.5)
