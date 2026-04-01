@@ -6,7 +6,7 @@ import lzma
 import msgpack
 import time
 
-from rocket_gcs_communication import HAS_MSGPACK
+from rocket_communication import HAS_MSGPACK
 from telemetry_data_transfer_types_retrieval import TelemetryDataTransferTypes
 
 DataValue = float | bool | list[float | bool]
