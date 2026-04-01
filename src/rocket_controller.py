@@ -13,6 +13,7 @@ from dps_controller import DPSSensorController
 from gps_controller import GPSSensorController
 from lcd_controller import LCDController
 from piezo_controller import PiezoController, PresetMusicalTones
+from servo_controller import ServoController
 
 
 Color = tuple[int, int, int]
@@ -38,12 +39,19 @@ class RocketController:
         self._piezo = PiezoController()
         self._lcd = LCDController()
 
+        # Create Servo Controllers
+        self._servo_controller = ServoController(pin=16)
+
         # Blink the LCD backlight a few times to indicate startup
         for _ in range(1):
             self._lcd.screen_off()
             time.sleep(0.15)
             self._lcd.screen_on()
             time.sleep(0.15)
+
+        # Testing Servo
+        self._lcd.print_line("Testing Servo", 0)
+        self._lcd.print_line("Servo should be moving", 1)
 
         # Play the piezo buzzer to indicate startup
         self._lcd.print_line("Playing Piezo", 0)
