@@ -1,4 +1,3 @@
-import GPIO
 import threading
 import time
 import pigpio
