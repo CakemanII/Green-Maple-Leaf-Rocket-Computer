@@ -57,7 +57,7 @@ class RocketController:
         for pos in positions:
             self._servo_controller_1.set_servo_angle(pos)
             self._servo_controller_2.set_servo_angle(pos)
-            time.sleep(0.5)
+            time.sleep(1)
 
         # Play the piezo buzzer to indicate startup
         self._lcd.print_line("Playing Piezo", 0)
