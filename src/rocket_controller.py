@@ -13,7 +13,7 @@ from dps_controller import DPSSensorController
 from gps_controller import GPSSensorController
 from lcd_controller import LCDController
 from piezo_controller import PiezoController, PresetMusicalTones
-from servo_controller import ServoController
+import servo_controller
 from fans_controller import FansController
 
 
@@ -41,8 +41,8 @@ class RocketController:
         self._lcd = LCDController()
 
         # Create Servo Controllers
-        self._servo_controller_1 = ServoController(pin=23)
-        self._servo_controller_2 = ServoController(pin=24)
+        self._servo_controller_1 = servo_controller.ServoController(pin=23)
+        self._servo_controller_2 = servo_controller.ServoController(pin=24)
 
         # Create Fan Controllers
         self._fan_controller = FansController(gpio=16)

@@ -2,6 +2,8 @@ import RPi.GPIO as GPIO
 import time
 import threading
 
+__all__ = ["ServoController"]
+
 class ServoController:
     SERVO_UPDATE_INTERVAL = 0.05
 
@@ -30,10 +32,15 @@ class ServoController:
             self.cleanup()
 
     def set_servo_angle(self, angle: float):
-        if angle < 0 or angle > 180:
-            print(f"⚠️  Attempted to set servo angle out of bounds: {angle}. Clamping to valid range.")
+        """Set servo angle. Supports 0..180 absolute, and negative offsets around midpoint."""
+        original_angle = angle
 
-        """Set servo to a specific angle (0-180)"""
+        if angle < 0:
+            angle = 90 + angle
+
+        if angle < 0 or angle > 180:
+            print(f"⚠️  Attempted to set servo angle out of bounds: {original_angle}. Clamping to valid range.")
+
         angle = max(0, min(180, angle))          # clamp angle
         duty = 2 + (angle / 18)                  # convert angle to duty cycle
         self._pwm.ChangeDutyCycle(duty)
