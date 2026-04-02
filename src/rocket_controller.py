@@ -58,10 +58,8 @@ class RocketController:
         self._lcd.print_line("Testing Fans", 0)
         self._lcd.print_line("Fan should be ON", 1)
 
-        for i in range(0, 101, 10):
-            self._fan_controller.set_fan_speed(i)
-            time.sleep(0.5)
-
+        self._fan_controller.set_fan_speed(100)
+        time.sleep(5)
         self._fan_controller.set_fan_speed(0)
 
         # Testing Servo
