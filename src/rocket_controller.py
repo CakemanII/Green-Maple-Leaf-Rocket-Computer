@@ -14,6 +14,7 @@ from gps_controller import GPSSensorController
 from lcd_controller import LCDController
 from piezo_controller import PiezoController, PresetMusicalTones
 from servo_controller import ServoController
+from fans_controller import FansController
 
 
 Color = tuple[int, int, int]
@@ -43,12 +44,25 @@ class RocketController:
         self._servo_controller_1 = ServoController(pin=23)
         self._servo_controller_2 = ServoController(pin=24)
 
+        # Create Fan Controllers
+        self._fan_controller = FansController(gpio=16)
+
         # Blink the LCD backlight a few times to indicate startup
         for _ in range(1):
             self._lcd.screen_off()
             time.sleep(0.15)
             self._lcd.screen_on()
             time.sleep(0.15)
+
+        # Testing Fans
+        self._lcd.print_line("Testing Fans", 0)
+        self._lcd.print_line("Fan should be ON", 1)
+
+        for i in range(0, 101, 10):
+            self._fan_controller.set_fan_speed(i)
+            time.sleep(0.5)
+
+        self._fan_controller.set_fan_speed(0)
 
         # Testing Servo
         self._lcd.print_line("Testing Servo", 0)
