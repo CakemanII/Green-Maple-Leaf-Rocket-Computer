@@ -60,7 +60,7 @@ class RocketController:
 
         self._fan_controller.set_fan_speed(100)
         time.sleep(5)
-        self._fan_controller.set_fan_speed(0)
+        #self._fan_controller.set_fan_speed(0)
 
         # Testing Servo
         self._lcd.print_line("Testing Servo", 0)
