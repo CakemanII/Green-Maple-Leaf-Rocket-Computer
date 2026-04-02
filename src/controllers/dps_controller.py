@@ -1,7 +1,7 @@
 import adafruit_dps310
 import time
 import threading
-from sensor_controller import SensorController
+from controllers.sensor_controller import SensorController
 
 class DPSSensorController(SensorController):
     def __init__(self, i2c):

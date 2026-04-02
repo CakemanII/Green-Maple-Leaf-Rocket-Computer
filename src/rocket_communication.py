@@ -11,14 +11,14 @@ import os
 import zlib
 import lzma
 import json
-from telemetry_data_transfer_types_retrieval import TelemetryDataTransferTypes
+from communication.telemetry_data_transfer_types_retrieval import TelemetryDataTransferTypes
 try:
     import msgpack
     HAS_MSGPACK = True
 except ImportError:
     HAS_MSGPACK = False
 
-from data_compression import DataCompression
+from communication.data_compression import DataCompression
 
 DataValue = float | bool | list[float | bool]
 class TelemetryObject(TypedDict):
