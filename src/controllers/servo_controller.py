@@ -44,7 +44,7 @@ class ServoController:
         self._target_angle = angle    
         if delay_for_completion:
             time.sleep(0.3)                           # give servo time to move
-        self._pwm.ChangeDutyCycle(0)             # stop sending signal
+            self._pwm.ChangeDutyCycle(0)             # stop sending signal
 
     def get_servo_angle(self) -> float:
         """Return the last commanded angle (cannot read actual angle)"""
