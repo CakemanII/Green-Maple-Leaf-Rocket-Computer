@@ -7,14 +7,14 @@ import gpiozero
 import time
 from datetime import datetime
 
-from raspi_controller import RaspiController
-from imu_controller import IMUSensorController
-from dps_controller import DPSSensorController
-from gps_controller import GPSSensorController
-from lcd_controller import LCDController
-from piezo_controller import PiezoController, PresetMusicalTones
-import servo_controller
-from fans_controller import FansController
+from controllers.raspi_controller import RaspiController
+from controllers.imu_controller import IMUSensorController
+from controllers.dps_controller import DPSSensorController
+from controllers.gps_controller import GPSSensorController
+from controllers.lcd_controller import LCDController
+from controllers.piezo_controller import PiezoController, PresetMusicalTones
+import controllers.servo_controller as servo_controller
+from controllers.fans_controller import FansController
 
 
 Color = tuple[int, int, int]
@@ -24,6 +24,22 @@ class RocketController:
     ITERATION_DELAY: float = 0.75
 
     def __init__(self):
+        # Command state variables
+        self._piezo_enabled = True
+        self._camera_enabled = True
+        self._lcd_enabled = True
+        self._fans_enabled = True
+        self._automatic_co2_breach_enabled = True
+        
+        self._manual_co2_breach_triggered = False
+        self._manual_servo_reset_triggered = False
+
+        self._send_dps_data_enabled = True
+        self._send_imu_data_enabled = True
+        self._send_gps_data_enabled = True
+        self._send_raspi_data_enabled = True
+        self._send_rocket_state_data_enabled = True
+
         self._co2_breach_triggered = False
 
         # I2C SETUP
@@ -103,11 +119,6 @@ class RocketController:
 
 
     def is_co2_breach_triggered(self) -> bool: return self._co2_breach_triggered
-
-    # region Fan Setup
-    def _verify_fan_device(self):
-        pass
-    # endregion
 
     def toggle_rocket_camera_state(self, state: bool):
         """

@@ -1,5 +1,5 @@
 import serial
-from sensor_controller import SensorController
+from controllers.sensor_controller import SensorController
 
 import pynmea2
 

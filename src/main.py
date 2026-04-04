@@ -2,13 +2,13 @@ from datetime import datetime
 
 from rocket_controller import RocketController
 from rocket_communication import RocketCommunication
-from telemetry_data_transfer_types_retrieval import TelemetryDataTransferTypes
+from communication.telemetry_data_transfer_types_retrieval import TelemetryDataTransferTypes
 from rocket_controller import RocketController
-from commands_list import RocketCommand
+from communication.commands_list import RocketCommand
 from rocket_sensor_data import RocketSensorData
 import RPi.GPIO as GPIO
 
-from data_compression import TelemetryObject
+from communication.data_compression import TelemetryObject
 
 import time
 
@@ -29,8 +29,6 @@ class RocketComputer:
 
         self._rocket_controller._lcd.clear()
         self._rocket_controller._lcd.print_line("Verifying RFM9X", 0)
-
-        
 
         # Add listeners for commands
         self._add_command_listeners()
@@ -83,41 +81,7 @@ class RocketComputer:
         """
         Add listeners for commands.
         """
-        # Toggle Stop receiving Commands
-        self._rocket_communication.add_listener(
-            RocketCommand.STOP_RECEIVING, 
-            None
-        )
-
-        # Toggle A Specific Sensor's Data Transmission
-        self._rocket_communication.add_listener(
-            RocketCommand.TOGGLE_SENSOR_DATA_TRANSMISSION, 
-            None
-        )
-
-        # System Shutdown
-        self._rocket_communication.add_listener(
-            RocketCommand.SHUTDOWN_SYSTEM, 
-            None
-        )
-
-        # Toggle Automatic Parachute Deployment
-        self._rocket_communication.add_listener(
-            RocketCommand.TOGGLE_AUTOMATIC_DEPLOYMENT, 
-            None
-        )
-
-        # Manual Breach CO2 Canister
-        self._rocket_communication.add_listener(
-            RocketCommand.MANUAL_PARACHUTE_DEPLOYMENT, 
-            self._rocket_controller.breach_co2_canister
-        )
-
-        # Toggle Camera
-        self._rocket_communication.add_listener(
-            RocketCommand.TOGGLE_ONBOARD_RASPI_CAM, 
-            self._rocket_controller.toggle_rocket_camera_state
-        )
+        pass
 
     def _main(self):
         """

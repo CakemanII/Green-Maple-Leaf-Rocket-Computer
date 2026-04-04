@@ -9,7 +9,7 @@ from adafruit_bno08x import (
     BNO_REPORT_LINEAR_ACCELERATION,
     BNO_REPORT_GRAVITY
 )
-from sensor_controller import SensorController
+from controllers.sensor_controller import SensorController
 
 import time
 
