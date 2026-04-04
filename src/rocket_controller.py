@@ -80,10 +80,10 @@ class RocketController:
         # Testing Servo
         self._servo_controller_1.set_servo_angle(0)
         self._servo_controller_2.set_servo_angle(0)
-        for x in range(0, 180, 10):
+        for x in range(0, 360, 10):
             self._lcd.print_line(f"{x}", 0)
-            self._servo_controller_1.set_servo_angle(x, False)
-            self._servo_controller_2.set_servo_angle(x, False)
+            self._servo_controller_1.set_servo_angle(x, True, True)
+            self._servo_controller_2.set_servo_angle(x, True, True)
             time.sleep(0.75)
 
         time.sleep(5)
