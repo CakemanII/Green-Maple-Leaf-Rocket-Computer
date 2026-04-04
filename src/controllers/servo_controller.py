@@ -28,7 +28,7 @@ class ServoController:
         while True:
             time.sleep(ServoController.SERVO_UPDATE_INTERVAL)
 
-    def set_servo_angle(self, angle: float):
+    def set_servo_angle(self, angle: float, delay_for_completion: bool = True):
         """Set servo angle. Supports 0..180 absolute, and negative offsets around midpoint."""
         original_angle = angle
 
@@ -41,8 +41,9 @@ class ServoController:
         angle = max(0, min(180, angle))          # clamp angle
         duty = 2 + (angle / 18)                  # convert angle to duty cycle
         self._pwm.ChangeDutyCycle(duty)
-        self._target_angle = angle                # store last commanded angle
-        time.sleep(0.3)                           # give servo time to move
+        self._target_angle = angle    
+        if delay_for_completion:
+            time.sleep(0.3)                           # give servo time to move
         self._pwm.ChangeDutyCycle(0)             # stop sending signal
 
     def get_servo_angle(self) -> float:
@@ -50,4 +51,5 @@ class ServoController:
         return self._target_angle
 
     def turn_off_servo(self):
+        self._pwm.ChangeDutyCycle(0)
         self._pwm.stop()
