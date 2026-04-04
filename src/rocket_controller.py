@@ -71,19 +71,22 @@ class RocketController:
             time.sleep(0.15)
 
         # Testing Fans
-        self._lcd.print_line("Testing Fans", 0)
-        self._lcd.print_line("Fan should be ON", 1)
+        # self._lcd.print_line("Testing Fans", 0)
+        # self._lcd.print_line("Fan should be ON", 1)
 
-        self._fan_controller.set_fan_speed(100)
-        time.sleep(5)
+        # self._fan_controller.set_fan_speed(100)
+        # time.sleep(5)
         #self._fan_controller.set_fan_speed(0)
 
         # Testing Servo
         self._lcd.print_line("Testing Servo", 0)
         self._lcd.print_line("Servo should be moving", 1)
-        self._servo_controller_1.set_servo_angle(-10)
-        self._servo_controller_2.set_servo_angle(-10)
+        self._servo_controller_1.set_servo_angle(170)
+        self._servo_controller_2.set_servo_angle(170)
 
+        time.sleep(5)
+
+        return
         # Play the piezo buzzer to indicate startup
         self._lcd.print_line("Playing Piezo", 0)
         self._lcd.print_line("You should hear it!", 1)
