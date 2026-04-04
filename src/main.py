@@ -3,7 +3,6 @@ from datetime import datetime
 from rocket_controller import RocketController
 from rocket_communication import RocketCommunication
 from communication.telemetry_data_transfer_types_retrieval import TelemetryDataTransferTypes
-from rocket_controller import RocketController
 from communication.commands_list import RocketCommand
 from rocket_sensor_data import RocketSensorData
 import RPi.GPIO as GPIO
