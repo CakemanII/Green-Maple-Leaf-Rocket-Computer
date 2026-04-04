@@ -18,7 +18,7 @@ class RocketComputer:
         self._telemetry_data_transfer_types = TelemetryDataTransferTypes()
 
         # Initialize Rocket GCS Communication
-        self._rocket_communication = RocketCommunication(telemetry_data_transfer_types=self._telemetry_data_transfer_types)
+        self._rocket_communication = None #RocketCommunication(telemetry_data_transfer_types=self._telemetry_data_transfer_types)
 
         # Initialize Rocket Controller
         self._rocket_controller = RocketController()
@@ -36,7 +36,7 @@ class RocketComputer:
         self._add_command_listeners()
         
         # Start communication
-        self._rocket_communication.set_active()
+        # self._rocket_communication.set_active()
 
         # Start main control loop
         self._main_test()
