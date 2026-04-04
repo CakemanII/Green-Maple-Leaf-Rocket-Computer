@@ -81,8 +81,8 @@ class RocketController:
         # Testing Servo
         self._lcd.print_line("Testing Servo", 0)
         self._lcd.print_line("Servo should be moving", 1)
-        self._servo_controller_1.move_to_angle(90)
-        self._servo_controller_2.move_to_angle(90)
+        self._servo_controller_1.set_servo_angle(90)
+        self._servo_controller_2.set_servo_angle(90)
 
         # Play the piezo buzzer to indicate startup
         self._lcd.print_line("Playing Piezo", 0)
