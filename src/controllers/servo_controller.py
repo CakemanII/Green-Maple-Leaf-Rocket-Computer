@@ -50,6 +50,6 @@ class ServoController:
         """Return the last commanded angle (cannot read actual angle)"""
         return self._target_angle
 
-    def turn_off_servo(self):
+    def rest_servo(self):
         self._pwm.ChangeDutyCycle(0)
         self._pwm.stop()
