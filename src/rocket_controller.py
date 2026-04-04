@@ -32,7 +32,6 @@ class RocketController:
         self._automatic_co2_breach_enabled = True
         
         self._manual_co2_breach_triggered = False
-        self._manual_servo_reset_triggered = False
 
         self._send_dps_data_enabled = True
         self._send_imu_data_enabled = True
