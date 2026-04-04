@@ -79,10 +79,13 @@ class RocketController:
         #self._fan_controller.set_fan_speed(0)
 
         # Testing Servo
-        self._lcd.print_line("Testing Servo", 0)
-        self._lcd.print_line("Servo should be moving", 1)
-        self._servo_controller_1.set_servo_angle(170)
-        self._servo_controller_2.set_servo_angle(170)
+        self._servo_controller_1.set_servo_angle(0)
+        self._servo_controller_2.set_servo_angle(0)
+        for x in range(0, 180, 10):
+            self._lcd.print_line(f"{x}", 0)
+            self._servo_controller_1.set_servo_angle(x)
+            self._servo_controller_2.set_servo_angle(x)
+            time.sleep(0.75)
 
         time.sleep(5)
 
