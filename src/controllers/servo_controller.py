@@ -25,11 +25,8 @@ class ServoController:
         self._update_thread.start()
 
     def _main(self):
-        try:
-            while True:
-                time.sleep(ServoController.SERVO_UPDATE_INTERVAL)
-        except KeyboardInterrupt:
-            self.cleanup()
+        while True:
+            time.sleep(ServoController.SERVO_UPDATE_INTERVAL)
 
     def set_servo_angle(self, angle: float):
         """Set servo angle. Supports 0..180 absolute, and negative offsets around midpoint."""
@@ -52,6 +49,5 @@ class ServoController:
         """Return the last commanded angle (cannot read actual angle)"""
         return self._target_angle
 
-    def cleanup(self):
+    def turn_off_servo(self):
         self._pwm.stop()
-        GPIO.cleanup()
