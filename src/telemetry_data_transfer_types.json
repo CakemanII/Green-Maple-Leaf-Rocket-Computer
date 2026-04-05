@@ -41,14 +41,6 @@
 
     "states":
     {
-        "lch": "boolean",
-        "apr": "boolean",
-        "par": "boolean",
-        "mas": "number"
-    },
-
-    "servos": {
-        "s1p": "number",
-        "s2p": "number"
+        "par": "boolean"
     }
 }
