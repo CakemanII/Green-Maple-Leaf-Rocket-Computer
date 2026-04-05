@@ -14,7 +14,6 @@ from controllers.gps_controller import GPSSensorController
 from controllers.lcd_controller import LCDController
 from controllers.piezo_controller import PiezoController, PresetMusicalTones
 import controllers.servo_controller as servo_controller
-from controllers.fans_controller import FansController
 
 
 Color = tuple[int, int, int]
@@ -59,40 +58,19 @@ class RocketController:
         self._servo_controller_1 = servo_controller.ServoController(pin=23)
         self._servo_controller_2 = servo_controller.ServoController(pin=24)
 
-        # Create Fan Controllers
-        self._fan_controller = FansController(gpio=16)
-
         # Blink the LCD backlight a few times to indicate startup
-        for _ in range(1):
+        for _ in range(5):
             self._lcd.screen_off()
             time.sleep(0.15)
             self._lcd.screen_on()
             time.sleep(0.15)
 
-        # Testing Fans
-        # self._lcd.print_line("Testing Fans", 0)
-        # self._lcd.print_line("Fan should be ON", 1)
+        time.sleep(0.5)
 
-        # self._fan_controller.set_fan_speed(100)
-        # time.sleep(5)
-        #self._fan_controller.set_fan_speed(0)
-
-        # Testing Servo
-        self._servo_controller_1.set_servo_angle(0)
-        self._servo_controller_2.set_servo_angle(0)
-        for x in range(0, 360, 10):
-            self._lcd.print_line(f"{x}", 0)
-            self._servo_controller_1.set_servo_angle(x, True, True)
-            self._servo_controller_2.set_servo_angle(x, True, True)
-            time.sleep(0.75)
-
-        time.sleep(5)
-
-        return
         # Play the piezo buzzer to indicate startup
         self._lcd.print_line("Playing Piezo", 0)
         self._lcd.print_line("You should hear it!", 1)
-        #self._piezo.play_tone(PresetMusicalTones.VERIFICATION_TONE, threaded=False)
+        self._piezo.play_tone(PresetMusicalTones.VERIFICATION_TONE, threaded=False)
 
         # Setup the IMU
         self._lcd.print_line("IMU Calibrating", 0)
