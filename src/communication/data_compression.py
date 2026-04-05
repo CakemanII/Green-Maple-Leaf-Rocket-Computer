@@ -128,3 +128,59 @@ class DataCompression:
             raise ValueError(f"Label '{label}' is not in the correct format 'category.label'")
         
         return DataCompression.LABEL_INTERATION_CODES[telemetry_data_transfer_types.get_index_of_category_and_label(label_split[0], label_split[1])[0]] + DataCompression.LABEL_INTERATION_CODES[telemetry_data_transfer_types.get_index_of_category_and_label(label_split[0], label_split[1])[1]]
+
+    @staticmethod
+    def _get_label_from_code(code: str, telemetry_data_transfer_types: TelemetryDataTransferTypes) -> str:
+        """
+        Returns the full label from a 2 character code.
+        Reverse of _get_code_from_label.
+        """
+        if len(code) != 2:
+            raise ValueError(f"Code '{code}' is not 2 characters long")
+        
+        category_index = DataCompression.LABEL_INTERATION_CODES.index(code[0])
+        label_index = DataCompression.LABEL_INTERATION_CODES.index(code[1])
+        
+        return telemetry_data_transfer_types.get_label_from_indices(category_index, label_index)
+
+    @staticmethod
+    def decompress_data(compressed_bytes: bytes, telemetry_data_transfer_types: TelemetryDataTransferTypes) -> tuple[list[TelemetryObject], float]:
+        """
+        Decompress data compressed by compress_data.
+        Returns a tuple of (list of TelemetryObjects, send_timestamp).
+        Reverse of compress_data.
+        """
+        # Decompress the payload
+        decompressed_bytes = DataCompression._decompress_payload(compressed_bytes)
+        
+        # Deserialize from MessagePack or JSON
+        data_with_sent_timestamp = DataCompression._deserialize_data(decompressed_bytes)
+        
+        # Extract send timestamp and compressed data
+        send_timestamp = data_with_sent_timestamp[0]
+        compressed_data = data_with_sent_timestamp[1]
+        
+        # Decompress each data object back to TelemetryObject format
+        telemetry_objects: list[TelemetryObject] = []
+        
+        for compressed_label, data_with_timestamp in compressed_data:
+            # Get the full label from the 2-character code
+            full_label = DataCompression._get_label_from_code(compressed_label, telemetry_data_transfer_types)
+            
+            # Extract timestamp (last element) and data values
+            timestamp = data_with_timestamp[-1]
+            data_values = data_with_timestamp[:-1]
+            
+            # Convert back to original format (single value or list)
+            if len(data_values) == 1:
+                data = data_values[0]
+            else:
+                data = data_values
+            
+            telemetry_objects.append({
+                "label": full_label,
+                "timestamp": timestamp,
+                "data": data
+            })
+        
+        return telemetry_objects, send_timestamp

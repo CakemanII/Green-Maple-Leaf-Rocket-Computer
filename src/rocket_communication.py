@@ -261,7 +261,6 @@ class RocketCommunication:
         Receive data via RFM9x.
         Send to appropriate listeners.
         """
-        return
         try:
             # Decrypt packet when encryption is enabled; fallback to raw packet otherwise.
             try:
@@ -269,20 +268,22 @@ class RocketCommunication:
             except Exception:
                 decrypted_bytes = packet
 
-            # Decompress payload if compressed
-            decoded_bytes = self._decompress_payload(decrypted_bytes)
-            
-            # Deserialize from binary (MessagePack) or JSON
-            data_obj: RadioDataObject = self._deserialize_data(decoded_bytes)
+            # Decompress data
+            datas, sent_timestamp = DataCompression.decompress_data(decrypted_bytes, self._telemetry_data_transfer_types)
 
+            # Ensure data is in expected format
+            if sent_timestamp is None:
+                raise ValueError("Received data does not contain a valid timestamp for latency calculation.")
+            
             # Set the latency
-            self._set_latency_from_data(data_obj)
+            self._set_latency_from_data(sent_timestamp)
 
             # Notify listeners
-            label = data_obj.get("l")
-            if label in self._listeners:
-                for callback in self._listeners[label]:
-                    callback(data_obj)
+            for data in datas:
+                label = data["label"]
+                if label in self._listeners:
+                    for callback in self._listeners[label]:
+                        callback(data["data"], data["timestamp"]) # Send data payload and timestamp to listener callbacks
 
         except Exception as e:
             print(f"❌ Error decrypting/processing received data: {e}")
@@ -297,9 +298,8 @@ class RocketCommunication:
 
         self._latency_thread = None
 
-    def _set_latency_from_data(self, data_obj):
+    def _set_latency_from_data(self, sent_timestamp: float):
         # Extract timestamp from received data
-        sent_timestamp = data_obj.get('s')
         if self._latency is not None:
             latency = time.time() - sent_timestamp
             self._latency_test = (time.time(), latency)
