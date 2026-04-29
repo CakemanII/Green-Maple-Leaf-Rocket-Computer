@@ -112,7 +112,6 @@ class RocketComputer:
                 rpi_values = rpi_data[1]
 
                 # Section 1
-                telemetry_objects.append({"label": "rasp.lat", "timestamp": current_timestamp, "data": rpi_values["latency"]})
                 telemetry_objects.append({"label": "rasp.ram", "timestamp": current_timestamp, "data": rpi_values["ram_usage"]})
                 telemetry_objects.append({"label": "rasp.cpu", "timestamp": current_timestamp, "data": rpi_values["cpu_usage"]})
                 telemetry_objects.append({"label": "rasp.dsk", "timestamp": current_timestamp, "data": rpi_values["disk_usage"]})
