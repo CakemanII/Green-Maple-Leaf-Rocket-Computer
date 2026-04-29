@@ -93,17 +93,17 @@ class RocketComputer:
                     self._rocket_communication.send_data(("d3", telemetry_objects))
 
             # Camera
-            telemetry_objects: list[TelemetryObject] = []
-            cam_data = self._rocket_sensor_data.get_camera_data()
-            if cam_data is not None and cam_data[1] is not None:
-                cam_values = cam_data[1]
-                telemetry_objects.append({"label": "cam.fps", "timestamp": current_timestamp, "data": cam_values["image"]})
-                telemetry_objects.append({"label": "cam.res", "timestamp": current_timestamp, "data": cam_values["resolution"]})
-                telemetry_objects.append({"label": "cam.on", "timestamp": current_timestamp, "data": cam_values["is_on"]})
+            # telemetry_objects: list[TelemetryObject] = []
+            # cam_data = self._rocket_sensor_data.get_camera_data()
+            # if cam_data is not None and cam_data[1] is not None:
+            #     cam_values = cam_data[1]
+            #     telemetry_objects.append({"label": "cam.fps", "timestamp": current_timestamp, "data": cam_values["image"]})
+            #     telemetry_objects.append({"label": "cam.res", "timestamp": current_timestamp, "data": cam_values["resolution"]})
+            #     telemetry_objects.append({"label": "cam.on", "timestamp": current_timestamp, "data": cam_values["is_on"]})
 
-                # Send entire batch as single compressed transmission
-                if telemetry_objects:
-                    self._rocket_communication.send_data(("d4", telemetry_objects))
+            #     # Send entire batch as single compressed transmission
+            #     if telemetry_objects:
+            #         self._rocket_communication.send_data(("d4", telemetry_objects))
 
             # Raspiberry Pi System Data
             telemetry_objects: list[TelemetryObject] = []
