@@ -111,30 +111,22 @@ class RocketComputer:
             if rpi_data is not None and rpi_data[1] is not None:
                 rpi_values = rpi_data[1]
 
-                # Section 1
-                telemetry_objects.append({"label": "rasp.ram", "timestamp": current_timestamp, "data": rpi_values["ram_usage"]})
-                telemetry_objects.append({"label": "rasp.cpu", "timestamp": current_timestamp, "data": rpi_values["cpu_usage"]})
-                telemetry_objects.append({"label": "rasp.dsk", "timestamp": current_timestamp, "data": rpi_values["disk_usage"]})
-
-                # Send entire batch as single compressed transmission
-                if telemetry_objects:
-                    self._rocket_communication.send_data(("d5", telemetry_objects))
-
-                # Section 2
-                telemetry_objects: list[TelemetryObject] = []
-                telemetry_objects.append({"label": "rasp.vlt", "timestamp": current_timestamp, "data": rpi_values["input_voltage"]})
-                telemetry_objects.append({"label": "rasp.pwr", "timestamp": current_timestamp, "data": rpi_values["input_power"]})
-                telemetry_objects.append({"label": "rasp.tmp", "timestamp": current_timestamp, "data": rpi_values["temperature"]})
+                telemetry_objects.append({"label": "rasp.tmp", "timestamp": current_timestamp, "data": rpi_values["cpu_temp"]})
+                telemetry_objects.append({"label": "rasp.vlt", "timestamp": current_timestamp, "data": rpi_values["voltage"]})
+                telemetry_objects.append({"label": "rasp.thr", "timestamp": current_timestamp, "data": rpi_values["throttled"]})
                 telemetry_objects.append({"label": "rasp.upt", "timestamp": current_timestamp, "data": rpi_values["uptime"]})
 
                 if telemetry_objects:
-                    self._rocket_communication.send_data(("d6", telemetry_objects))
+                    self._rocket_communication.send_data(("d5", telemetry_objects))
 
-            # States
-            telemetry_objects: list[TelemetryObject] = []
-            has_parachute_deployed: bool = self._rocket_controller.is_co2_breach_triggered()
-            if has_parachute_deployed:
-                telemetry_objects.append({"label": "state.par", "timestamp": current_timestamp, "data": True})
+                telemetry_objects: list[TelemetryObject] = []
+
+                telemetry_objects.append({"label": "rasp.ram", "timestamp": current_timestamp, "data": rpi_values["ram_percent"]})
+                telemetry_objects.append({"label": "rasp.cpu", "timestamp": current_timestamp, "data": rpi_values["cpu_usage_percent"]})
+                telemetry_objects.append({"label": "rasp.dsk", "timestamp": current_timestamp, "data": rpi_values["disk_usage_percent"]})
+
+                if telemetry_objects:
+                    self._rocket_communication.send_data(("d6", telemetry_objects))
 
             # LCD Status Display
             gps_data = self._rocket_sensor_data.get_gps_data()
