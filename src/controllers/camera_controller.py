@@ -1,6 +1,15 @@
 import time
 from datetime import datetime
 
+# NOT DOING
+# NOT DOING
+# NOT DOING
+# NOT DOING
+# NOT DOING
+# NOT DOING
+# NOT DOING
+# NOT DOING
+
 class CameraController():
     CAMERA_CHECK_INTERVAL = 0.05
 
