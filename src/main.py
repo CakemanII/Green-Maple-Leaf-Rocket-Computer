@@ -107,7 +107,7 @@ class RocketComputer:
 
             # Raspiberry Pi System Data
             telemetry_objects: list[TelemetryObject] = []
-            rpi_data = self._rocket_sensor_data.get_rpi_data()
+            rpi_data = self._rocket_sensor_data.get_raspi_stats()
             if rpi_data is not None and rpi_data[1] is not None:
                 rpi_values = rpi_data[1]
 
